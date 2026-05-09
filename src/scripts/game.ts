@@ -2,7 +2,7 @@ import { animate } from "@motionone/dom";
 import gsap from "gsap";
 import { advanceStage, answerStage, getCurrentDay, getCurrentStage, replacePlaceholders } from "@/lib/game/engine";
 import { clearGameState, loadGameState, resetGameState, saveGameState } from "@/lib/game/storage";
-import type { AnswerResult, GameContent, StageContent } from "@/lib/game/types";
+import type { AnswerResult, GameContent, PrologueScene, StageContent } from "@/lib/game/types";
 import { createLeaderboardService } from "@/lib/leaderboard/firebase";
 import { sanitizeNickname } from "@/lib/security/profanity";
 
@@ -56,17 +56,57 @@ let isNameEntryMode = false;
 let pendingOptionId: string | null = null;
 let onDialogComplete: (() => void) | null = null;
 
+// 序章狀態
+type ProloguePhase = "pre-choice" | "branch" | "ending";
+let prologueCompleted = false;
+let prologuePhase: ProloguePhase = "pre-choice";
+let prologuePendingChoiceId: string | null = null;
+
+// 設定面板控制
+const settingsPanel = document.getElementById("settings-panel") as HTMLDivElement | null;
+const settingsClose = document.getElementById("settings-close") as HTMLButtonElement | null;
+const settingsRestart = document.getElementById("settings-restart") as HTMLButtonElement | null;
+const settingsHelp = document.getElementById("settings-help") as HTMLButtonElement | null;
+
 refs.settingsButton.addEventListener("click", () => {
-  if (!confirm("確定要從頭開始遊戲嗎？目前進度將會清除。")) return;
+  if (settingsPanel) settingsPanel.hidden = false;
+});
+
+settingsClose?.addEventListener("click", () => {
+  if (settingsPanel) settingsPanel.hidden = true;
+});
+
+settingsPanel?.addEventListener("click", (e) => {
+  if (e.target === settingsPanel) settingsPanel.hidden = true;
+});
+
+settingsRestart?.addEventListener("click", () => {
+  if (!confirm(content.ui.settingsRestartConfirm)) return;
+  if (settingsPanel) settingsPanel.hidden = true;
   clearGameState();
   state = null;
   latestAnswer = null;
   pendingOptionId = null;
   onDialogComplete = null;
+  prologueCompleted = false;
+  prologuePhase = "pre-choice";
+  prologuePendingChoiceId = null;
   render();
 });
 
+settingsHelp?.addEventListener("click", () => {
+  if (settingsPanel) settingsPanel.hidden = true;
+  const overlay = document.getElementById("welcome-overlay");
+  if (overlay) overlay.hidden = false;
+});
+
 refs.nextButton.addEventListener("click", () => {
+  // 序章流程
+  if (!prologueCompleted && content.prologue) {
+    handlePrologueNext();
+    return;
+  }
+
   // 名稱輸入模式：提交名稱
   if (isNameEntryMode) {
     const nameInput = document.getElementById("player-name-input") as HTMLInputElement | null;
@@ -168,7 +208,11 @@ render();
 
 function render(): void {
   if (!state) {
-    renderBeforeStart();
+    if (!prologueCompleted && content.prologue) {
+      renderPrologue();
+    } else {
+      renderBeforeStart();
+    }
     return;
   }
 
@@ -223,6 +267,93 @@ function render(): void {
   }
 
   animate(refs.characterPortrait, { transform: ["translateY(8px)", "translateY(0)"], opacity: [0.78, 1] }, { duration: 0.28 });
+}
+
+function renderPrologue(): void {
+  const prologue = content.prologue!;
+  const scene = prologue.scenes[0];
+  const character = content.characters.system;
+
+  prologuePhase = "pre-choice";
+  prologuePendingChoiceId = null;
+
+  refs.resultPanel.hidden = true;
+  refs.nextButton.disabled = true;
+  refs.nextButton.hidden = false;
+  refs.nextButton.textContent = "繼續";
+  refs.playerNameLabel.textContent = "未命名";
+  refs.routeLabel.textContent = "序章";
+  refs.stageTitle.textContent = prologue.title;
+  refs.sceneVisual.dataset.bg = prologue.background;
+  refs.characterPortrait.src = character.portrait;
+  refs.characterPortrait.alt = `${character.displayName} 立繪`;
+  refs.speakerName.textContent = character.displayName;
+  refs.speakerName.style.background = character.accent;
+  refs.totalScore.textContent = `0 / ${content.points.totalMax}`;
+  refs.scoreProgress.setAttribute("aria-valuenow", "0");
+  refs.scoreProgressFill.style.width = "0%";
+  refs.feedbackBox.hidden = true;
+  refs.toastStack.hidden = true;
+  refs.choiceList.replaceChildren();
+
+  onDialogComplete = () => renderPrologueChoices(scene);
+  renderDialog(scene.dialogue);
+}
+
+function renderPrologueChoices(scene: PrologueScene): void {
+  refs.choiceList.replaceChildren();
+  scene.choices.forEach((choice) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "choice-button";
+    button.textContent = choice.text;
+    button.dataset.choiceId = choice.id;
+    button.addEventListener("click", () => handlePrologueChoice(choice.id));
+    refs.choiceList.append(button);
+  });
+}
+
+function handlePrologueChoice(choiceId: string): void {
+  prologuePendingChoiceId = choiceId;
+  refs.choiceList.querySelectorAll<HTMLButtonElement>(".choice-button").forEach((btn) => {
+    btn.classList.toggle("is-pending", btn.dataset.choiceId === choiceId);
+  });
+  refs.nextButton.disabled = false;
+}
+
+function handlePrologueNext(): void {
+  const scene = content.prologue!.scenes[0];
+
+  if (prologuePhase === "pre-choice" && prologuePendingChoiceId) {
+    prologuePhase = "branch";
+    refs.nextButton.disabled = true;
+    refs.choiceList.replaceChildren();
+
+    // 分支對話播完後等待使用者點擊，不自動推進
+    onDialogComplete = () => {
+      refs.nextButton.textContent = "繼續";
+      refs.nextButton.disabled = false;
+    };
+    renderDialog(scene.branchDialogue[prologuePendingChoiceId]);
+    return;
+  }
+
+  // 分支對話已播完，使用者點擊「繼續」→ 開始共同結尾
+  if (prologuePhase === "branch") {
+    prologuePhase = "ending";
+    refs.nextButton.disabled = true;
+    onDialogComplete = () => {
+      refs.nextButton.textContent = "進入遊戲";
+      refs.nextButton.disabled = false;
+    };
+    renderDialog(scene.sharedEnding);
+    return;
+  }
+
+  if (prologuePhase === "ending") {
+    prologueCompleted = true;
+    renderBeforeStart();
+  }
 }
 
 function renderBeforeStart(): void {

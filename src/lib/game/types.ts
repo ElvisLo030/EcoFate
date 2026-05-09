@@ -4,12 +4,38 @@ export type BranchId = "ivy" | "shino";
 
 export type Operator = "eq" | "gte";
 
+export interface WelcomeContent {
+  title: string;
+  body: string;
+  confirmButton: string;
+}
+
+export interface PrologueChoice {
+  id: string;
+  text: string;
+}
+
+export interface PrologueScene {
+  id: string;
+  dialogue: string;
+  choices: PrologueChoice[];
+  branchDialogue: Record<string, string>;
+  sharedEnding: string;
+}
+
+export interface PrologueContent {
+  title: string;
+  background: string;
+  scenes: PrologueScene[];
+}
+
 export interface GameContent {
   meta: {
     title: string;
-    subtitle: string;
+    subtitle?: string;
     locale: string;
   };
+  welcome?: WelcomeContent;
   points: {
     correct: number;
     wrong: number;
@@ -18,6 +44,7 @@ export interface GameContent {
   };
   ui: Record<string, string>;
   characters: Record<string, CharacterContent>;
+  prologue?: PrologueContent;
   days: DayContent[];
   hiddenBranches: HiddenBranchContent[];
   ending: {

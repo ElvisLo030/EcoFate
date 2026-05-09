@@ -33,6 +33,54 @@ const serializedContent = JSON.stringify(content).replaceAll("<", "\\u003c");
     <ClientRouter />
   </head>
   <body>
+    <div id="settings-panel" class="settings-panel" hidden role="dialog" aria-modal="true" aria-labelledby="settings-title">
+      <div class="settings-modal">
+        <div class="settings-titlebar">
+          <div class="window-controls" aria-hidden="true">
+            <span class="window-dot"></span>
+            <span class="window-dot"></span>
+            <span class="window-dot"></span>
+          </div>
+          <span class="settings-title" id="settings-title">{content.ui.settingsTitle}</span>
+          <button class="settings-close-btn" id="settings-close" type="button" aria-label="關閉">✕</button>
+        </div>
+        <div class="settings-body">
+          <button class="settings-action-btn settings-action-btn--warning" id="settings-restart" type="button">{content.ui.settingsRestartButton}</button>
+          <button class="settings-action-btn settings-action-btn--info" id="settings-help" type="button">{content.ui.settingsHelpButton}</button>
+        </div>
+        <footer class="settings-footer">
+          <p class="settings-copyright">
+            <a class="settings-link" href="https://elvislo.tw" target="_blank" rel="noopener noreferrer">elvislo.tw</a>
+            &nbsp;{content.ui.settingsCopyrightText}
+          </p>
+        </footer>
+      </div>
+    </div>
+
+    {content.welcome && (
+      <div id="welcome-overlay" class="welcome-overlay" role="dialog" aria-modal="true" aria-labelledby="welcome-title">
+        <div class="welcome-modal">
+          <h2 class="welcome-title" id="welcome-title">{content.welcome.title}</h2>
+          <div class="welcome-body">{content.welcome.body}</div>
+          <button id="welcome-confirm" class="welcome-confirm-btn" type="button">
+            {content.welcome.confirmButton}
+          </button>
+        </div>
+      </div>
+      <script>
+        {/* sessionStorage：同一分頁只顯示一次 */}
+        const overlay = document.getElementById('welcome-overlay');
+        if (overlay) {
+          if (sessionStorage.getItem('welcome-seen')) {
+            overlay.hidden = true;
+          }
+          document.getElementById('welcome-confirm')?.addEventListener('click', () => {
+            overlay.hidden = true;
+            sessionStorage.setItem('welcome-seen', '1');
+          });
+        }
+      </script>
+    )}
     <div class="device-overlay landscape-overlay" role="alert">
       <p class="device-overlay__msg">請將手機轉為直向遊玩</p>
     </div>
