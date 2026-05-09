@@ -208,7 +208,7 @@
           "title": "瓶內還有飲料怎麼辦",
           "background": "campus",
           "speaker": "coco",
-          "dialogue": "{playerName}，今天輪到寶特瓶回收。可可會盯著殘液，因為它會害整袋回收物變髒。",
+          "dialogue": "{playerName}，今天輪到寶特瓶回收</br>可可會盯著殘液，因為它會害整袋回收物變髒。",
           "situation": "你手上的寶特瓶還剩一點飲料，但附近有水槽與回收桶。",
           "correctOptionId": "empty-first",
           "options": [
@@ -240,7 +240,7 @@
           "title": "是否清潔與壓扁",
           "background": "recycle",
           "speaker": "coco",
-          "dialogue": "瓶子不是丟進去就好。乾淨、減容，才會讓回收站工作順很多。",
+          "dialogue": "瓶子不是丟進去就好。乾淨、減容，才會讓回收站工作順很多。</br>喵喵",
           "situation": "你已倒空寶特瓶，瓶身仍有黏膩飲料痕跡。",
           "correctOptionId": "rinse-flatten",
           "options": [

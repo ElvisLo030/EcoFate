@@ -1,3 +1,37 @@
+/* ── 裝置覆蓋層 ── */
+.device-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: var(--panel, #fff8fb);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  text-align: center;
+  padding: 32px;
+}
+
+.device-overlay__msg {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 900;
+  line-height: 1.5;
+}
+
+@media (orientation: landscape) {
+  .landscape-overlay {
+    display: flex;
+  }
+}
+
+@media (orientation: portrait) and (min-width: 640px) {
+  .desktop-overlay {
+    display: flex;
+  }
+}
+
 :root {
   color-scheme: light;
   --sakura: #f8a8c6;
@@ -59,19 +93,21 @@ button:disabled {
 
 .app-shell {
   min-height: 100vh;
-  padding: 24px;
+  min-height: 100dvh;
+  padding: 16px 12px;
 }
 
 .game-window {
-  width: min(1180px, 100%);
-  min-height: calc(100vh - 48px);
+  width: 100%;
+  max-width: 480px;
+  min-height: calc(100dvh - 32px);
   margin: 0 auto;
   display: grid;
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: auto auto 1fr auto;
   border: 4px solid var(--line);
-  border-radius: 8px;
+  border-radius: 12px;
   background: var(--panel);
-  box-shadow: 8px 8px 0 var(--shadow);
+  box-shadow: 6px 6px 0 rgba(52, 38, 57, 0.28);
   overflow: hidden;
 }
 
@@ -84,6 +120,28 @@ button:disabled {
   padding: 8px 12px;
   background: linear-gradient(90deg, var(--sakura), var(--mint));
   border-bottom: 4px solid var(--line);
+}
+
+.settings-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  flex-shrink: 0;
+  border: 3px solid var(--line);
+  border-radius: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 1.1rem;
+  line-height: 1;
+  box-shadow: inset -3px -3px 0 rgba(52, 38, 57, 0.18), 3px 3px 0 rgba(52, 38, 57, 0.28);
+}
+
+.settings-button:hover {
+  transform: translate(1px, 1px);
+  box-shadow: inset -2px -2px 0 rgba(52, 38, 57, 0.2), 2px 2px 0 rgba(52, 38, 57, 0.24);
 }
 
 .title-meta {
@@ -114,7 +172,7 @@ button:disabled {
 
 .status-strip {
   display: grid;
-  grid-template-columns: minmax(150px, auto) 1fr minmax(140px, auto);
+  grid-template-columns: minmax(150px, auto) 1fr minmax(100px, 165px);
   gap: 12px;
   align-items: center;
   padding: 12px;
@@ -138,6 +196,9 @@ button:disabled {
 
 .stat-value {
   font-weight: 800;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .progress-wrap {
@@ -221,16 +282,17 @@ button:disabled {
 
 .main-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+  grid-template-columns: 1fr;
   min-height: 0;
+  overflow: hidden;
 }
 
 .scene-panel {
   position: relative;
-  display: grid;
-  grid-template-rows: auto 1fr;
-  min-height: 560px;
-  border-right: 4px solid var(--line);
+  min-height: 180px;
+  max-height: 32vh;
+  border-right: 0;
+  border-bottom: 4px solid var(--line);
   overflow: hidden;
 }
 
@@ -271,8 +333,8 @@ button:disabled {
   position: relative;
   display: grid;
   place-items: end center;
-  min-height: 420px;
-  padding: 24px 24px 0;
+  min-height: 120px;
+  padding: 8px 8px 0;
   background:
     linear-gradient(rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.08)),
     var(--scene-bg, linear-gradient(180deg, #b9ecff 0%, #f8ffc9 58%, #b8e6b8 100%));
@@ -318,18 +380,19 @@ button:disabled {
 .character-portrait {
   position: relative;
   z-index: 1;
-  width: min(330px, 72%);
-  max-height: 390px;
+  width: min(160px, 50%);
+  max-height: 180px;
   object-fit: contain;
   image-rendering: pixelated;
-  filter: drop-shadow(10px 10px 0 rgba(52, 38, 57, 0.22));
+  filter: drop-shadow(6px 6px 0 rgba(52, 38, 57, 0.22));
 }
 
 .side-panel {
   display: grid;
-  grid-template-rows: auto auto 1fr;
+  grid-template-rows: auto 1fr;
   min-width: 0;
   background: #fff8fb;
+  overflow: auto;
 }
 
 .name-entry {
@@ -404,10 +467,11 @@ button:disabled {
 }
 
 .dialog-text {
-  min-height: 76px;
+  min-height: 60px;
   margin: 0;
   font-size: 1.02rem;
   line-height: 1.7;
+  white-space: pre-wrap;
 }
 
 .dialog-text::after {
@@ -422,6 +486,22 @@ button:disabled {
 }
 
 .dialog-text.is-finished::after {
+  display: none;
+}
+
+.dialog-continue {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--mint-dark);
+  animation: blink 1.2s step-end infinite;
+  cursor: pointer;
+}
+
+.dialog-continue[hidden] {
   display: none;
 }
 
@@ -454,6 +534,12 @@ button:disabled {
   font-weight: 800;
   line-height: 1.45;
   box-shadow: inset -4px -4px 0 rgba(52, 38, 57, 0.08), 4px 4px 0 rgba(52, 38, 57, 0.15);
+}
+
+.choice-button.is-pending {
+  background: #e8d5ff;
+  border-color: var(--violet);
+  box-shadow: inset -4px -4px 0 rgba(139, 111, 184, 0.15), 4px 4px 0 rgba(52, 38, 57, 0.2);
 }
 
 .choice-button.is-correct {
@@ -491,7 +577,7 @@ button:disabled {
 .footer-bar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 12px;
   padding: 10px 12px;
   border-top: 4px solid var(--line);
@@ -566,26 +652,10 @@ button:disabled {
 }
 
 @media (max-width: 860px) {
-  .app-shell {
-    padding: 10px;
-  }
-
-  .game-window {
-    min-height: calc(100vh - 20px);
-    box-shadow: 5px 5px 0 var(--shadow);
-  }
-
   .status-strip,
-  .main-grid,
   .name-row,
   .result-grid {
     grid-template-columns: 1fr;
-  }
-
-  .scene-panel {
-    min-height: 420px;
-    border-right: 0;
-    border-bottom: 4px solid var(--line);
   }
 
   .scene-header {
@@ -595,15 +665,6 @@ button:disabled {
   .scene-score {
     min-width: 0;
     text-align: left;
-  }
-
-  .scene-visual {
-    min-height: 300px;
-    padding: 16px 16px 0;
-  }
-
-  .character-portrait {
-    width: min(240px, 70%);
   }
 
   .footer-bar {

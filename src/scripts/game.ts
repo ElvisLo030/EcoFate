@@ -1,7 +1,7 @@
 import { animate } from "@motionone/dom";
 import gsap from "gsap";
 import { advanceStage, answerStage, getCurrentDay, getCurrentStage, replacePlaceholders } from "@/lib/game/engine";
-import { loadGameState, resetGameState, saveGameState } from "@/lib/game/storage";
+import { clearGameState, loadGameState, resetGameState, saveGameState } from "@/lib/game/storage";
 import type { AnswerResult, GameContent, StageContent } from "@/lib/game/types";
 import { createLeaderboardService } from "@/lib/leaderboard/firebase";
 import { sanitizeNickname } from "@/lib/security/profanity";
@@ -10,30 +10,25 @@ const content = readContent();
 const leaderboard = createLeaderboardService();
 
 const refs = {
-  nameEntry: getElement<HTMLElement>("name-entry"),
-  nameForm: getElement<HTMLFormElement>("name-form"),
-  nameInput: getElement<HTMLInputElement>("player-name-input"),
-  nameError: getElement<HTMLElement>("name-error"),
   playerNameLabel: getElement<HTMLElement>("player-name-label"),
   routeLabel: getElement<HTMLElement>("route-label"),
   progressLabel: getElement<HTMLElement>("progress-label"),
   totalScore: getElement<HTMLElement>("total-score"),
   scoreProgress: getElement<HTMLElement>("score-progress"),
   scoreProgressFill: getElement<HTMLElement>("score-progress-fill"),
-  dayTheme: getElement<HTMLElement>("day-theme"),
   stageTitle: getElement<HTMLElement>("stage-title"),
-  dayScoreLabel: getElement<HTMLElement>("day-score-label"),
-  dayScore: getElement<HTMLElement>("day-score"),
   sceneVisual: getElement<HTMLElement>("scene-visual"),
   characterPortrait: getElement<HTMLImageElement>("character-portrait"),
   speakerName: getElement<HTMLElement>("speaker-name"),
+  dialogBox: getElement<HTMLElement>("dialog-box"),
   dialogText: getElement<HTMLElement>("dialog-text"),
-  situationText: getElement<HTMLElement>("situation-text"),
+  dialogContinue: getElement<HTMLElement>("dialog-continue"),
   choiceList: getElement<HTMLElement>("choice-list"),
   feedbackBox: getElement<HTMLElement>("feedback-box"),
   feedbackTitle: getElement<HTMLElement>("feedback-title"),
   feedbackText: getElement<HTMLElement>("feedback-text"),
   toastStack: getElement<HTMLElement>("toast-stack"),
+  settingsButton: getElement<HTMLButtonElement>("settings-button"),
   nextButton: getElement<HTMLButtonElement>("next-stage-button"),
   resultPanel: getElement<HTMLElement>("result-panel"),
   resultSummary: getElement<HTMLElement>("result-summary"),
@@ -50,30 +45,97 @@ let state = loadGameState();
 let latestAnswer: AnswerResult | null = null;
 let isSubmittingScore = false;
 
-refs.nameForm.addEventListener("submit", (event) => {
-  event.preventDefault();
-  const result = sanitizeNickname(refs.nameInput.value);
+// 對話分段狀態
+let pendingSegments: string[] = [];
+let currentSegmentText = "";
+let currentTween: gsap.core.Tween | null = null;
+let isDialogPaused = false;
+let isNameEntryMode = false;
 
-  if (!result.ok) {
-    refs.nameError.textContent = result.error ?? "";
-    return;
-  }
+// 選項選擇狀態（待確認 vs 已計分）
+let pendingOptionId: string | null = null;
+let onDialogComplete: (() => void) | null = null;
 
-  state = resetGameState(result.value);
+refs.settingsButton.addEventListener("click", () => {
+  if (!confirm("確定要從頭開始遊戲嗎？目前進度將會清除。")) return;
+  clearGameState();
+  state = null;
   latestAnswer = null;
-  refs.nameError.textContent = "";
+  pendingOptionId = null;
+  onDialogComplete = null;
   render();
 });
 
 refs.nextButton.addEventListener("click", () => {
-  if (!state || !getSelectedOptionId(getCurrentStage(content, state))) {
+  // 名稱輸入模式：提交名稱
+  if (isNameEntryMode) {
+    const nameInput = document.getElementById("player-name-input") as HTMLInputElement | null;
+    const nameError = document.getElementById("name-error") as HTMLElement | null;
+    if (!nameInput) return;
+    const result = sanitizeNickname(nameInput.value);
+    if (!result.ok) {
+      if (nameError) nameError.textContent = result.error ?? "";
+      return;
+    }
+    state = resetGameState(result.value);
+    latestAnswer = null;
+    isNameEntryMode = false;
+    render();
     return;
   }
 
+  if (!state) return;
+
+  const stage = getCurrentStage(content, state);
+  const scoredOptionId = getSelectedOptionId(stage);
+
+  // 有待確認的選項（已選但未計分）：確認選擇並計分
+  if (pendingOptionId && !scoredOptionId) {
+    latestAnswer = answerStage(content, state, pendingOptionId);
+    saveGameState(state);
+    const confirmedId = pendingOptionId;
+    pendingOptionId = null;
+    renderChoices(stage, confirmedId, null);
+    renderFeedback(stage, confirmedId);
+    renderScore();
+    refs.nextButton.textContent = latestAnswer.gameCompleted ? content.ui.finishButton : content.ui.nextButton;
+    renderToasts(stage, latestAnswer.unlockedMessages);
+    return;
+  }
+
+  // 已計分：前往下一關
+  if (!scoredOptionId) return;
   advanceStage(content, state);
   saveGameState(state);
   latestAnswer = null;
   render();
+});
+
+// 點擊對話框：跳過打字機或推進分段
+refs.dialogBox.addEventListener("click", () => {
+  if (currentTween?.isActive()) {
+    // 打字機播放中：立即跳至段落末尾
+    currentTween.kill();
+    currentTween = null;
+    refs.dialogText.textContent = currentSegmentText;
+    refs.dialogText.classList.add("is-finished");
+    if (pendingSegments.length > 0) {
+      isDialogPaused = true;
+      refs.dialogContinue.hidden = false;
+    } else {
+      // 最後一段跳過：觸發對話完成回調
+      const cb = onDialogComplete;
+      onDialogComplete = null;
+      cb?.();
+    }
+    return;
+  }
+  // 等待點擊狀態：繼續下一段
+  if (isDialogPaused) {
+    isDialogPaused = false;
+    refs.dialogContinue.hidden = true;
+    playNextSegment();
+  }
 });
 
 refs.leaderboardForm.addEventListener("submit", async (event) => {
@@ -110,7 +172,9 @@ function render(): void {
     return;
   }
 
-  refs.nameEntry.hidden = true;
+  isNameEntryMode = false;
+  pendingOptionId = null;
+  onDialogComplete = null;
   refs.playerNameLabel.textContent = state.playerName;
   renderScore();
 
@@ -124,33 +188,38 @@ function render(): void {
 
   const day = getCurrentDay(content, state);
   const stage = getCurrentStage(content, state);
-  const character = content.characters[stage.speaker];
+  const character = (stage.speaker ? content.characters[stage.speaker] : undefined) ?? content.characters.system;
   const selectedOptionId = getSelectedOptionId(stage);
   const isFinalStage = state.currentDayIndex === content.days.length - 1 && state.currentStageIndex === day.stages.length - 1;
 
   refs.routeLabel.textContent = `Day ${day.order}`;
-  refs.dayTheme.textContent = `${day.title}｜${day.theme}`;
   refs.stageTitle.textContent = `${stage.id} ${stage.title}`;
-  refs.dayScoreLabel.textContent = content.ui.dayScoreLabel;
-  refs.dayScore.textContent = `${state.dayScores[day.id]} / ${content.points.dayMax}`;
   refs.sceneVisual.dataset.bg = stage.background;
   refs.characterPortrait.src = character.portrait;
   refs.characterPortrait.alt = `${character.displayName} 立繪`;
   refs.speakerName.textContent = character.displayName;
   refs.speakerName.style.background = character.accent;
-  refs.situationText.textContent = replacePlaceholders(stage.situation, state);
-  refs.nextButton.textContent = selectedOptionId && isFinalStage ? content.ui.finishButton : content.ui.nextButton;
-  refs.nextButton.disabled = !selectedOptionId;
+  refs.nextButton.textContent = content.ui.nextButton;
+  refs.nextButton.disabled = true;
 
   renderDialog(replacePlaceholders(stage.dialogue, state));
-  renderChoices(stage, selectedOptionId);
 
   if (selectedOptionId) {
+    // 此關已作答（從存檔還原）：對話播放的同時立即顯示選項與反饋
+    renderChoices(stage, selectedOptionId, null);
     renderFeedback(stage, selectedOptionId);
+    refs.nextButton.textContent = selectedOptionId && isFinalStage ? content.ui.finishButton : content.ui.nextButton;
+    refs.nextButton.disabled = false;
   } else {
+    // 未作答：等對話全部跑完再顯示選項
+    refs.choiceList.replaceChildren();
     refs.feedbackBox.hidden = true;
     refs.toastStack.hidden = true;
     refs.toastStack.replaceChildren();
+
+    onDialogComplete = () => {
+      renderChoices(stage, null, null);
+    };
   }
 
   animate(refs.characterPortrait, { transform: ["translateY(8px)", "translateY(0)"], opacity: [0.78, 1] }, { duration: 0.28 });
@@ -158,31 +227,51 @@ function render(): void {
 
 function renderBeforeStart(): void {
   const character = content.characters.system;
+  isNameEntryMode = true;
 
-  refs.nameEntry.hidden = false;
   refs.resultPanel.hidden = true;
-  refs.nextButton.disabled = true;
+  refs.nextButton.disabled = false;
   refs.nextButton.hidden = false;
+  refs.nextButton.textContent = content.ui.startButton;
   refs.playerNameLabel.textContent = "未命名";
   refs.routeLabel.textContent = "Day 1";
-  refs.dayTheme.textContent = "Day 1｜加入永續生活研究社";
   refs.stageTitle.textContent = content.ui.namePromptTitle;
-  refs.dayScore.textContent = `0 / ${content.points.dayMax}`;
   refs.sceneVisual.dataset.bg = "club";
   refs.characterPortrait.src = character.portrait;
   refs.characterPortrait.alt = `${character.displayName} 立繪`;
   refs.speakerName.textContent = character.displayName;
   refs.speakerName.style.background = character.accent;
-  renderDialog(content.ui.namePromptBody);
   refs.totalScore.textContent = `0 / ${content.points.totalMax}`;
   refs.scoreProgress.setAttribute("aria-valuenow", "0");
   refs.scoreProgressFill.style.width = "0%";
-  refs.choiceList.replaceChildren();
   refs.feedbackBox.hidden = true;
   refs.toastStack.hidden = true;
+
+  // 動態注入名稱輸入框到 choice-list
+  refs.choiceList.replaceChildren();
+  const input = document.createElement("input");
+  input.className = "text-input";
+  input.id = "player-name-input";
+  input.type = "text";
+  input.maxLength = 16;
+  input.setAttribute("autocomplete", "nickname");
+  input.placeholder = content.ui.namePlaceholder;
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      refs.nextButton.click();
+    }
+  });
+  const errorP = document.createElement("p");
+  errorP.id = "name-error";
+  errorP.className = "leaderboard-note";
+  errorP.setAttribute("aria-live", "polite");
+  refs.choiceList.append(input, errorP);
+
+  renderDialog(content.ui.namePromptBody);
 }
 
-function renderChoices(stage: StageContent, selectedOptionId: string | null): void {
+function renderChoices(stage: StageContent, scoredOptionId: string | null, currentPendingId: string | null): void {
   refs.choiceList.replaceChildren();
 
   stage.options.forEach((option) => {
@@ -190,35 +279,34 @@ function renderChoices(stage: StageContent, selectedOptionId: string | null): vo
     button.type = "button";
     button.className = "choice-button";
     button.textContent = option.text;
-    button.disabled = Boolean(selectedOptionId);
     button.dataset.optionId = option.id;
 
-    if (selectedOptionId) {
+    if (scoredOptionId) {
+      // 已計分：全部禁用，顯示正誤結果
+      button.disabled = true;
       if (option.id === stage.correctOptionId) {
         button.classList.add("is-correct");
-      } else if (option.id === selectedOptionId) {
+      } else if (option.id === scoredOptionId) {
         button.classList.add("is-wrong");
       }
+    } else {
+      // 未計分：可點選，高亮待確認的選項
+      if (currentPendingId && option.id === currentPendingId) {
+        button.classList.add("is-pending");
+      }
+      button.addEventListener("click", () => handleChoiceSelect(stage, option.id));
     }
 
-    button.addEventListener("click", () => handleChoice(stage, option.id));
     refs.choiceList.append(button);
   });
 }
 
-function handleChoice(stage: StageContent, optionId: string): void {
-  if (!state || getSelectedOptionId(stage)) {
-    return;
-  }
+function handleChoiceSelect(stage: StageContent, optionId: string): void {
+  if (!state || getSelectedOptionId(stage)) return;
 
-  latestAnswer = answerStage(content, state, optionId);
-  saveGameState(state);
-  renderChoices(stage, optionId);
-  renderFeedback(stage, optionId);
-  renderScore();
+  pendingOptionId = optionId;
+  renderChoices(stage, null, pendingOptionId);
   refs.nextButton.disabled = false;
-  refs.nextButton.textContent = latestAnswer.gameCompleted ? content.ui.finishButton : content.ui.nextButton;
-  renderToasts(stage, latestAnswer.unlockedMessages);
 }
 
 function renderFeedback(stage: StageContent, selectedOptionId: string): void {
@@ -288,16 +376,13 @@ function renderCompleted(): void {
   refs.resultPanel.hidden = false;
   refs.nextButton.hidden = true;
   refs.routeLabel.textContent = "完成";
-  refs.dayTheme.textContent = "三日主線完成";
   refs.stageTitle.textContent = content.ending.title;
-  refs.dayScore.textContent = `${state.dayScores.day3} / ${content.points.dayMax}`;
   refs.sceneVisual.dataset.bg = lastStage.background;
   refs.characterPortrait.src = character.portrait;
   refs.characterPortrait.alt = `${character.displayName} 立繪`;
   refs.speakerName.textContent = character.displayName;
   refs.speakerName.style.background = character.accent;
   renderDialog(`研究完成，${state.playerName}。你的總環保積分是 ${state.totalScore} 分。`);
-  refs.situationText.textContent = "三日主線已完成，可送出排行榜。";
   refs.choiceList.replaceChildren();
   refs.feedbackBox.hidden = true;
   refs.toastStack.hidden = true;
@@ -334,21 +419,80 @@ async function renderLeaderboard(): Promise<void> {
   });
 }
 
-function renderDialog(text: string): void {
+// 「。」後插入換行（排除緊接 \n 或段末）
+function preprocessText(text: string): string {
+  return text.replace(/。(?!\n|$)/g, "。\n");
+}
+
+// 解析段落：判斷是旁白還是角色對話
+function parseSegment(raw: string): { character: (typeof content.characters)[string]; text: string } {
+  for (const char of Object.values(content.characters)) {
+    const prefix = `${char.displayName}：`;
+    if (raw.startsWith(prefix)) {
+      return { character: char, text: raw.slice(prefix.length) };
+    }
+  }
+  return { character: content.characters.system, text: raw };
+}
+
+function playNextSegment(): void {
+  if (pendingSegments.length === 0) {
+    // 所有段落播完：觸發對話完成回調
+    const cb = onDialogComplete;
+    onDialogComplete = null;
+    cb?.();
+    return;
+  }
+
+  const rawSeg = pendingSegments.shift()!;
+  const { character, text } = parseSegment(rawSeg);
+  const hasMore = pendingSegments.length > 0;
+
+  // 每段更新說話者與立繪
+  refs.speakerName.textContent = character.displayName;
+  refs.speakerName.style.background = character.accent;
+  refs.characterPortrait.src = character.portrait;
+  refs.characterPortrait.alt = `${character.displayName} 立繪`;
+  animate(refs.characterPortrait, { transform: ["translateY(6px)", "translateY(0)"], opacity: [0.8, 1] }, { duration: 0.22 });
+
+  currentSegmentText = preprocessText(text);
   refs.dialogText.classList.remove("is-finished");
-  gsap.killTweensOf(refs.dialogText);
+  refs.dialogContinue.hidden = true;
+  if (currentTween) currentTween.kill();
   refs.dialogText.textContent = "";
 
   const cursor = { index: 0 };
-  gsap.to(cursor, {
-    index: text.length,
-    duration: Math.min(1.2, Math.max(0.35, text.length * 0.025)),
+  currentTween = gsap.to(cursor, {
+    index: currentSegmentText.length,
+    duration: Math.min(1.4, Math.max(0.35, currentSegmentText.length * 0.025)),
     ease: "none",
     onUpdate: () => {
-      refs.dialogText.textContent = text.slice(0, Math.round(cursor.index));
+      refs.dialogText.textContent = currentSegmentText.slice(0, Math.round(cursor.index));
     },
-    onComplete: () => refs.dialogText.classList.add("is-finished")
+    onComplete: () => {
+      currentTween = null;
+      refs.dialogText.classList.add("is-finished");
+      if (hasMore) {
+        isDialogPaused = true;
+        refs.dialogContinue.hidden = false;
+      } else {
+        // 最後一段打完：觸發對話完成回調
+        const cb = onDialogComplete;
+        onDialogComplete = null;
+        cb?.();
+      }
+    }
   });
+}
+
+function renderDialog(rawText: string): void {
+  pendingSegments = rawText
+    .split("</br>")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  isDialogPaused = false;
+  refs.dialogContinue.hidden = true;
+  playNextSegment();
 }
 
 function getSelectedOptionId(stage: StageContent): string | null {

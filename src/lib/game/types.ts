@@ -46,9 +46,9 @@ export interface StageContent {
   order: number;
   title: string;
   background: string;
-  speaker: string;
+  speaker?: string;
   dialogue: string;
-  situation: string;
+  situation?: string;
   correctOptionId: string;
   options: ChoiceContent[];
   feedback: {

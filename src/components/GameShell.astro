@@ -33,6 +33,12 @@ const serializedContent = JSON.stringify(content).replaceAll("<", "\\u003c");
     <ClientRouter />
   </head>
   <body>
+    <div class="device-overlay landscape-overlay" role="alert">
+      <p class="device-overlay__msg">請將手機轉為直向遊玩</p>
+    </div>
+    <div class="device-overlay desktop-overlay" role="alert">
+      <p class="device-overlay__msg">請使用手機遊玩此遊戲</p>
+    </div>
     <main class="app-shell">
       <div class="game-window" data-view-transition>
         <header class="title-bar">
@@ -44,7 +50,7 @@ const serializedContent = JSON.stringify(content).replaceAll("<", "\\u003c");
             </div>
             <h1 class="brand">{content.meta.title}</h1>
           </div>
-          <strong>{content.meta.subtitle}</strong>
+          <button class="settings-button" id="settings-button" type="button" aria-label="設定">⚙</button>
         </header>
 
         <section class="status-strip" aria-label="遊戲狀態">
@@ -54,33 +60,14 @@ const serializedContent = JSON.stringify(content).replaceAll("<", "\\u003c");
           </div>
           <PixelProgress />
           <div class="stat-box">
-            <span class="stat-label">目前流程</span>
-            <span class="stat-value" id="route-label">Day 1</span>
+            <span class="stat-label" id="route-label">Day 1</span>
+            <span class="stat-value" id="stage-title">永續生活研究社</span>
           </div>
         </section>
 
         <div class="main-grid">
           <SceneStage />
           <aside class="side-panel">
-            <section class="name-entry" id="name-entry">
-              <h2>{content.ui.namePromptTitle}</h2>
-              <p>{content.ui.namePromptBody}</p>
-              <form class="name-row" id="name-form">
-                <label class="sr-only" for="player-name-input">{content.ui.namePlaceholder}</label>
-                <input
-                  class="text-input"
-                  id="player-name-input"
-                  name="playerName"
-                  type="text"
-                  maxlength="16"
-                  autocomplete="nickname"
-                  placeholder={content.ui.namePlaceholder}
-                  required
-                />
-                <button class="pixel-button" type="submit">{content.ui.startButton}</button>
-              </form>
-              <p class="leaderboard-note" id="name-error" aria-live="polite"></p>
-            </section>
             <DialogBox />
             <ChoiceList />
             <Leaderboard />
@@ -88,7 +75,6 @@ const serializedContent = JSON.stringify(content).replaceAll("<", "\\u003c");
         </div>
 
         <footer class="footer-bar">
-          <span class="route-lock">{content.ui.routeLockText}</span>
           <button class="pixel-button" id="next-stage-button" type="button" disabled>{content.ui.nextButton}</button>
         </footer>
       </div>
