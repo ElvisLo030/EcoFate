@@ -1,6 +1,6 @@
 # 永續心動研究社
 
-三日制永續選擇 AVG。專案以「ESG 消費行為改變」為主題，透過戀愛養成遊戲的選項流程，讓玩家在源頭減量、寶特瓶回收與複合包材分類等情境中累積環保積分。
+兩日制永續選擇 AVG。專案以「ESG 消費行為改變」為主題，透過戀愛養成遊戲的選項流程，讓玩家在源頭減量、寶特瓶回收等情境中累積環保積分。
 
 ## 技術架構
 
@@ -16,11 +16,11 @@
 
 ## 遊戲內容
 
-- 主線共 3 天，每天 4 個關卡。
-- 每關 4 個選項，最佳永續行為得 25 分，總分上限 300 分。
+- 主線共 2 天，每天 4 個關卡。
+- 每關 4 個選項，最佳永續行為得 25 分，總分上限 200 分。
 - 環保積分同時作為好感度，用於顯示綠葉轉愛心的像素進度條。
 - 遊戲狀態儲存在瀏覽器 `localStorage`，並加入 Base64 與時間戳混淆。
-- 達成指定分數條件後，可解鎖隱藏支線訊息。
+- D1+D2 達 150 分以上進入 Good Ending，否則進入 Bad Ending。
 - 完成後可送出玩家暱稱與總分到 Firestore 排行榜。
 
 ## 專案結構
@@ -64,8 +64,8 @@ pnpm preview
 ```
 
 - `pnpm run check`：執行 Astro 型別與診斷檢查。
-- `pnpm run verify:content`：驗證三日主線、關卡、選項、配分與隱藏支線資料。
-- `pnpm run verify:flow`：驗證 Day 1 到 Day 3 的流程推進、配分與支線解鎖條件。
+- `pnpm run verify:content`：驗證兩日主線、關卡、選項、配分與 GE/BE 規則資料。
+- `pnpm run verify:flow`：驗證 Day 1 到 Day 2 的流程推進、配分與 GE/BE 判定。
 - `pnpm run build`：先執行 Astro check，再產生 `dist/` 靜態輸出。
 - `pnpm preview`：預覽已建置的靜態成果。
 
@@ -97,7 +97,7 @@ PUBLIC_BASE_PATH=/Hackathon/
 Firestore 使用 `leaderboard` collection 儲存排行榜資料。`firestore.rules` 目前允許公開讀取、只允許新增資料，並限制：
 
 - `playerName` 必須是 1 到 16 字元的字串。
-- `score` 必須是 0 到 300 的整數。
+- `score` 必須是 0 到 200 的整數。
 - `createdAt` 必須等於伺服器請求時間。
 - 禁止更新與刪除排行榜資料。
 

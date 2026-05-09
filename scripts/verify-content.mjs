@@ -12,8 +12,8 @@ const expectedDays = [
     title: "Day 1 小澄線",
     theme: "源頭減量",
     stages: [
-      ["1-1", "是否自備水壺"],
-      ["1-2", "買瓶裝水或找飲水機"],
+      ["1-1", "今天有帶水壺嗎？"],
+      ["1-2", "買水還是找飲水機？"],
       ["1-3", "必要購買時如何選擇"],
       ["1-4", "喝完瓶裝水如何處理"]
     ]
@@ -28,25 +28,14 @@ const expectedDays = [
       ["2-3", "是否查詢附近回收站"],
       ["2-4", "高級瓶裝水消費選擇"]
     ]
-  },
-  {
-    id: "day3",
-    title: "Day 3 箔音線",
-    theme: "複合包材分類",
-    stages: [
-      ["3-1", "鋁箔包是否能當紙類"],
-      ["3-2", "不確定分類時怎麼辦"],
-      ["3-3", "查詢高雄回收規則"],
-      ["3-4", "有殘液紙盒如何處理"]
-    ]
   }
 ];
 
 assert(content.points.correct === 25, "答對必須得 25 分");
 assert(content.points.wrong === 0, "答錯必須得 0 分");
 assert(content.points.dayMax === 100, "每日最高分必須為 100");
-assert(content.points.totalMax === 300, "三日最高總分必須為 300");
-assert(Array.isArray(content.days) && content.days.length === 3, "主線必須有三天");
+assert(content.points.totalMax === 200, "兩日最高總分必須為 200");
+assert(Array.isArray(content.days) && content.days.length === 2, "主線必須有兩天");
 
 const day1Intro = content.days?.[0]?.intro;
 assert(day1Intro?.id === "1-0", "Day 1 必須有 1-0 開場 intro");
@@ -81,65 +70,47 @@ expectedDays.forEach((expectedDay, dayIndex) => {
   });
 });
 
-const ivy = content.hiddenBranches.find((branch) => branch.id === "ivy");
-assert(ivy?.unlockAfterDay === "day2", "艾薇支線必須在 Day 2 結束後判定");
-assert(ivy?.conditions?.[0]?.metric === "dayScore", "艾薇支線必須檢查 Day 1 分數");
-assert(ivy?.conditions?.[0]?.dayId === "day1", "艾薇支線必須檢查 Day 1");
-assert(ivy?.conditions?.[0]?.operator === "eq", "艾薇支線條件必須為等於");
-assert(ivy?.conditions?.[0]?.value === 100, "艾薇支線條件必須為 Day 1 分數等於 100");
-assert(ivy?.messages?.includes("你對源頭減量的理解已達成條件。"), "艾薇支線第一句解鎖訊息不符");
-assert(ivy?.messages?.includes("隱藏支線：艾薇 已解鎖。"), "艾薇支線第二句解鎖訊息不符");
+const stage11 = content.days[0].stages[0];
+assert(stage11.title === "今天有帶水壺嗎？", "1-1 必須套用新版標題");
+assert(stage11.correctOptionId === "1-1-B", "1-1 正解必須為 1-1-B");
+assert(stage11.options.map((option) => option.id).join(",") === "1-1-A,1-1-B,1-1-C,1-1-D", "1-1 選項 id 必須符合劇情文件");
+assert(hasResponsesForEveryOption(stage11), "1-1 必須為每個選項提供回覆劇情");
+assert(stage11.responseDialogues["1-1-B"].includes("系統提示：Day 1 分數 +25"), "1-1-B 回覆必須包含加分提示");
 
-const shino = content.hiddenBranches.find((branch) => branch.id === "shino");
-assert(shino?.unlockAfterDay === "day3", "紙乃支線必須在 Day 3 結束後判定");
-assert(shino?.conditions?.[0]?.metric === "dayScoreSum", "紙乃支線必須檢查 Day 1 + Day 2 分數");
-assert(shino?.conditions?.[0]?.dayIds?.join(",") === "day1,day2", "紙乃支線必須檢查 Day 1 + Day 2");
-assert(shino?.conditions?.[0]?.operator === "gte", "紙乃支線條件必須為大於等於");
-assert(shino?.conditions?.[0]?.value === 150, "紙乃支線條件必須為 Day 1 + Day 2 大於等於 150");
-assert(shino?.messages?.includes("你已具備進階分類判斷能力。"), "紙乃支線第一句解鎖訊息不符");
-assert(shino?.messages?.includes("隱藏支線：紙乃 已解鎖。"), "紙乃支線第二句解鎖訊息不符");
-
-const day24 = content.days[1].stages[3];
-assert(day24.foreshadow?.branchId === "ivy", "Day 2-4 必須作為艾薇支線伏筆");
-
-const day34 = content.days[2].stages[3];
-assert(day34.foreshadow?.branchId === "shino", "Day 3-4 必須作為紙乃支線伏筆");
-
-const sp1 = content.routeRules?.specialRoutes?.find((route) => route.id === "sp1");
-assert(sp1?.unlockAfterDay === "day1", "SP1 必須在 Day 1 結束後判定");
-assert(sp1?.condition?.metric === "dayScore", "SP1 必須檢查 Day 1 分數");
-assert(sp1?.condition?.dayId === "day1", "SP1 必須檢查 day1");
-assert(sp1?.condition?.operator === "gte", "SP1 條件必須為大於等於");
-assert(sp1?.condition?.value === 100, "SP1 條件必須為 Day 1 分數大於等於 100");
-assert(sp1?.nextDay === "day2", "SP1 結束後必須回到 Day 2");
-
-const sp2 = content.routeRules?.specialRoutes?.find((route) => route.id === "sp2");
-assert(sp2?.unlockAfterDay === "day2", "SP2 必須在 Day 2 結束後判定");
-assert(sp2?.condition?.metric === "dayScoreSum", "SP2 必須檢查 Day 1 + Day 2 分數");
-assert(sp2?.condition?.dayIds?.join(",") === "day1,day2", "SP2 必須檢查 Day 1 + Day 2");
-assert(sp2?.condition?.operator === "gte", "SP2 條件必須為大於等於");
-assert(sp2?.condition?.value === 150, "SP2 條件必須為 Day 1 + Day 2 大於等於 150");
-assert(sp2?.nextDay === "day3", "SP2 結束後必須回到 Day 3");
+const stage12 = content.days[0].stages[1];
+assert(stage12.title === "買水還是找飲水機？", "1-2 必須套用新版標題");
+assert(stage12.correctOptionId === "1-2-A", "1-2 正解必須為 1-2-A");
+assert(stage12.options.map((option) => option.id).join(",") === "1-2-A,1-2-B,1-2-C,1-2-D", "1-2 選項 id 必須符合劇情文件");
+assert(hasResponsesForEveryOption(stage12), "1-2 必須為每個選項提供回覆劇情");
+assert(stage12.responseDialogues["1-2-A"].includes("系統提示：Day 1 分數 +25"), "1-2-A 回覆必須包含加分提示");
 
 const goodEnding = content.routeRules?.endings?.find((ending) => ending.id === "good");
-assert(goodEnding?.condition?.mainScoreGte === 250, "Good Ending 必須在主線分數大於等於 250 時觸發");
+assert(goodEnding?.condition?.metric === "dayScoreSum", "Good Ending 必須檢查 D1+D2");
+assert(goodEnding?.condition?.dayIds?.join(",") === "day1,day2", "Good Ending 必須檢查 Day 1 + Day 2");
+assert(goodEnding?.condition?.operator === "gte", "Good Ending 條件必須為大於等於");
+assert(goodEnding?.condition?.value === 150, "Good Ending 必須在 D1+D2 大於等於 150 時觸發");
 
 const badEnding = content.routeRules?.endings?.find((ending) => ending.id === "bad");
-assert(badEnding?.condition?.mainScoreLt === 250, "Bad Ending 必須在主線分數小於 250 時觸發");
-
-const trueEnding = content.routeRules?.endings?.find((ending) => ending.id === "true");
-assert(trueEnding?.condition?.mainScoreGte === 250, "True Ending 必須符合主線分數大於等於 250");
-assert(trueEnding?.condition?.specialScoreGte === 75, "True Ending 必須符合支線分數大於等於 75");
+assert(badEnding?.condition?.metric === "dayScoreSum", "Bad Ending 必須檢查 D1+D2");
+assert(badEnding?.condition?.dayIds?.join(",") === "day1,day2", "Bad Ending 必須檢查 Day 1 + Day 2");
+assert(badEnding?.condition?.operator === "lt", "Bad Ending 條件必須為小於");
+assert(badEnding?.condition?.value === 150, "Bad Ending 必須在 D1+D2 小於 150 時觸發");
+assert(Boolean(content.ending?.results?.good?.summary), "Good Ending 必須有 i18n 結果摘要");
+assert(Boolean(content.ending?.results?.bad?.summary), "Bad Ending 必須有 i18n 結果摘要");
 
 if (errors.length > 0) {
   console.error(errors.map((error) => `- ${error}`).join("\n"));
   process.exit(1);
 }
 
-console.log("內容驗證通過：三日主線、關卡、計分與隱藏支線符合規格。");
+console.log("內容驗證通過：兩日主線、D1 劇情回覆、計分與 GE/BE 規則符合規格。");
 
 function assert(condition, message) {
   if (!condition) {
     errors.push(message);
   }
+}
+
+function hasResponsesForEveryOption(stage) {
+  return stage.options.every((option) => Boolean(stage.responseDialogues?.[option.id]));
 }

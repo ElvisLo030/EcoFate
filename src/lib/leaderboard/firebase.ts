@@ -25,7 +25,7 @@ export interface LeaderboardService {
 }
 
 const COLLECTION_NAME = "leaderboard";
-const MAX_SCORE = 300;
+const MAX_SCORE = 200;
 const MAX_NAME_LENGTH = 16;
 
 let app: FirebaseApp | null = null;

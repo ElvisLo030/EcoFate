@@ -1,7 +1,7 @@
 ---
 interface Props {
   resultTitle: string;
-  dayLabels: [string, string, string];
+  dayLabels: [string, string];
   submitButtonText: string;
 }
 const { resultTitle, dayLabels, submitButtonText } = Astro.props;
@@ -18,10 +18,6 @@ const { resultTitle, dayLabels, submitButtonText } = Astro.props;
     <div class="stat-box">
       <span class="stat-label">{dayLabels[1]}</span>
       <span class="stat-value" id="result-day2">0 / 100</span>
-    </div>
-    <div class="stat-box">
-      <span class="stat-label">{dayLabels[2]}</span>
-      <span class="stat-value" id="result-day3">0 / 100</span>
     </div>
   </div>
   <form class="leaderboard-form" id="leaderboard-form">

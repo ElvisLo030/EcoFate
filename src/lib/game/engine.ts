@@ -10,7 +10,7 @@ import type {
   StageContent
 } from "./types";
 
-const DAY_IDS: DayId[] = ["day1", "day2", "day3"];
+const DAY_IDS: DayId[] = ["day1", "day2"];
 
 export function createInitialState(playerName: string): GameState {
   return {
@@ -19,8 +19,7 @@ export function createInitialState(playerName: string): GameState {
     currentStageIndex: 0,
     dayScores: {
       day1: 0,
-      day2: 0,
-      day3: 0
+      day2: 0
     },
     totalScore: 0,
     answeredStageIds: [],
@@ -171,5 +170,7 @@ function compare(actual: number, operator: Operator, expected: number): boolean 
       return actual === expected;
     case "gte":
       return actual >= expected;
+    case "lt":
+      return actual < expected;
   }
 }

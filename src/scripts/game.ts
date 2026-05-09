@@ -2,7 +2,7 @@ import { animate } from "@motionone/dom";
 import gsap from "gsap";
 import { advanceStage, answerStage, createInitialState, getCurrentDay, getCurrentStage, replacePlaceholders } from "@/lib/game/engine";
 import { clearGameState, loadGameState, resetGameState, saveGameState } from "@/lib/game/storage";
-import type { AnswerResult, DayIntroContent, GameContent, GameState, PrologueScene, StageContent } from "@/lib/game/types";
+import type { AnswerResult, BranchCondition, DayIntroContent, EndingResultContent, GameContent, GameState, PrologueScene, StageContent } from "@/lib/game/types";
 import { createLeaderboardService } from "@/lib/leaderboard/firebase";
 import { sanitizeNickname, MAX_NICKNAME_LENGTH } from "@/lib/security/profanity";
 
@@ -34,7 +34,6 @@ const refs = {
   resultSummary: getElement<HTMLElement>("result-summary"),
   resultDay1: getElement<HTMLElement>("result-day1"),
   resultDay2: getElement<HTMLElement>("result-day2"),
-  resultDay3: getElement<HTMLElement>("result-day3"),
   leaderboardForm: getElement<HTMLFormElement>("leaderboard-form"),
   submitScoreButton: getElement<HTMLButtonElement>("submit-score-button"),
   leaderboardStatus: getElement<HTMLElement>("leaderboard-status"),
@@ -42,6 +41,10 @@ const refs = {
 };
 
 let state = loadGameState();
+if (state && ("day3" in state.dayScores || state.currentDayIndex >= content.days.length)) {
+  clearGameState();
+  state = null;
+}
 let latestAnswer: AnswerResult | null = null;
 let isSubmittingScore = false;
 
@@ -159,9 +162,17 @@ refs.nextButton.addEventListener("click", () => {
     const confirmedId = pendingOptionId;
     pendingOptionId = null;
     renderChoices(stage, confirmedId, null);
-    renderFeedback(stage, confirmedId);
+    if (stage.responseDialogues) {
+      refs.feedbackBox.hidden = true;
+    } else {
+      renderFeedback(stage, confirmedId);
+    }
     renderScore();
     refs.nextButton.textContent = latestAnswer.gameCompleted ? content.ui.finishButton : content.ui.nextButton;
+    refs.nextButton.disabled = true;
+    renderStageResponse(stage, confirmedId, () => {
+      refs.nextButton.disabled = false;
+    });
     renderToasts(stage, latestAnswer.unlockedMessages);
     return;
   }
@@ -274,12 +285,19 @@ function render(): void {
   refs.nextButton.textContent = content.ui.nextButton;
   refs.nextButton.disabled = true;
 
-  renderDialog(replacePlaceholders(stage.dialogue, state));
+  const activeDialogue = selectedOptionId && stage.responseDialogues?.[selectedOptionId]
+    ? stage.responseDialogues[selectedOptionId]
+    : stage.dialogue;
+  renderDialog(replacePlaceholders(activeDialogue, state));
 
   if (selectedOptionId) {
     // 此關已作答（從存檔還原）：對話播放的同時立即顯示選項與反饋
     renderChoices(stage, selectedOptionId, null);
-    renderFeedback(stage, selectedOptionId);
+    if (stage.responseDialogues) {
+      refs.feedbackBox.hidden = true;
+    } else {
+      renderFeedback(stage, selectedOptionId);
+    }
     refs.nextButton.textContent = selectedOptionId && isFinalStage ? content.ui.finishButton : content.ui.nextButton;
     refs.nextButton.disabled = false;
   } else {
@@ -594,6 +612,22 @@ function renderFeedback(stage: StageContent, selectedOptionId: string): void {
   refs.feedbackBox.hidden = false;
 }
 
+function renderStageResponse(stage: StageContent, selectedOptionId: string, onComplete: () => void): void {
+  if (!state) {
+    onComplete();
+    return;
+  }
+
+  const responseDialogue = stage.responseDialogues?.[selectedOptionId];
+  if (!responseDialogue) {
+    onComplete();
+    return;
+  }
+
+  onDialogComplete = onComplete;
+  renderDialog(replacePlaceholders(responseDialogue, state));
+}
+
 function renderToasts(stage: StageContent, unlockedMessages: string[]): void {
   refs.toastStack.replaceChildren();
   const messages = [
@@ -647,24 +681,24 @@ function renderCompleted(): void {
   const lastDay = content.days[content.days.length - 1];
   const lastStage = lastDay.stages[lastDay.stages.length - 1];
   const character = content.characters.system;
+  const ending = resolveEndingResult(state);
 
   refs.resultPanel.hidden = false;
   refs.nextButton.hidden = true;
   refs.routeLabel.textContent = content.ui.completedLabel;
-  refs.stageTitle.textContent = content.ending.title;
+  refs.stageTitle.textContent = fmt(content.ui.endingTitleFormat, { sectionTitle: content.ending.title, endingTitle: ending.title });
   refs.sceneVisual.dataset.bg = lastStage.background;
   refs.characterPortrait.src = character.portrait;
   refs.characterPortrait.alt = fmt(content.ui.portraitAltFormat, { displayName: character.displayName });
   refs.speakerName.textContent = character.displayName;
   refs.speakerName.style.background = character.accent;
-  renderDialog(fmt(content.ui.completionDialog, { playerName: state.playerName, totalScore: state.totalScore }));
+  renderDialog(fmt(content.ui.completionDialog, { endingTitle: ending.title, playerName: state.playerName, totalScore: state.totalScore }));
   refs.choiceList.replaceChildren();
   refs.feedbackBox.hidden = true;
   refs.toastStack.hidden = true;
-  refs.resultSummary.textContent = replacePlaceholders(content.ending.summary, state);
+  refs.resultSummary.textContent = replacePlaceholders(ending.summary, state);
   refs.resultDay1.textContent = `${state.dayScores.day1} / ${content.points.dayMax}`;
   refs.resultDay2.textContent = `${state.dayScores.day2} / ${content.points.dayMax}`;
-  refs.resultDay3.textContent = `${state.dayScores.day3} / ${content.points.dayMax}`;
   refs.submitScoreButton.textContent = content.ui.submitScoreButton;
   refs.submitScoreButton.disabled = !leaderboard.enabled;
   refs.leaderboardStatus.textContent = leaderboard.enabled ? "" : content.ui.leaderboardUnavailable;
@@ -780,6 +814,32 @@ function getSelectedOptionId(stage: StageContent): string | null {
 
 function getDayOneIntro(): DayIntroContent | undefined {
   return content.days.find((day) => day.id === "day1")?.intro;
+}
+
+function resolveEndingResult(targetState: GameState): EndingResultContent {
+  const matchedRule = content.routeRules?.endings.find((endingRule) => evaluateCondition(endingRule.condition, targetState));
+  const result = matchedRule ? content.ending.results[matchedRule.id] : undefined;
+  const fallback = Object.values(content.ending.results)[0];
+  if (!result && !fallback) {
+    throw new Error("缺少結局內容資料。");
+  }
+
+  return result ?? fallback;
+}
+
+function evaluateCondition(condition: BranchCondition, targetState: GameState): boolean {
+  const actual = condition.metric === "dayScore"
+    ? targetState.dayScores[condition.dayId]
+    : condition.dayIds.reduce((sum, dayId) => sum + targetState.dayScores[dayId], 0);
+
+  switch (condition.operator) {
+    case "eq":
+      return actual === condition.value;
+    case "gte":
+      return actual >= condition.value;
+    case "lt":
+      return actual < condition.value;
+  }
 }
 
 function requireState(): GameState {

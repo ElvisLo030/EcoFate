@@ -10,7 +10,7 @@ service cloud.firestore {
         && request.resource.data.playerName.size() <= 16
         && request.resource.data.score is int
         && request.resource.data.score >= 0
-        && request.resource.data.score <= 300
+        && request.resource.data.score <= 200
         && request.resource.data.createdAt == request.time;
       allow update, delete: if false;
     }

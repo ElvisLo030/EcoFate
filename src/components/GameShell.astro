@@ -110,7 +110,7 @@ function fmtDay(template: string, order: number): string {
             <span class="stat-label">{content.ui.playerStatLabel}</span>
             <span class="stat-value" id="player-name-label">{content.ui.defaultPlayerName}</span>
           </div>
-          <PixelProgress progressBarLabel={content.ui.progressBarLabel} scoreLabel={content.ui.scoreLabel} />
+          <PixelProgress progressBarLabel={content.ui.progressBarLabel} scoreLabel={content.ui.scoreLabel} totalMax={content.points.totalMax} />
           <div class="stat-box">
             <span class="stat-label" id="route-label">{fmtDay(content.ui.dayLabelFormat, 1)}</span>
             <span class="stat-value" id="stage-title">{content.ui.namePromptTitle}</span>
@@ -126,8 +126,7 @@ function fmtDay(template: string, order: number): string {
               resultTitle={content.ending.title}
               dayLabels={[
                 fmtDay(content.ui.dayLabelFormat, 1),
-                fmtDay(content.ui.dayLabelFormat, 2),
-                fmtDay(content.ui.dayLabelFormat, 3)
+                fmtDay(content.ui.dayLabelFormat, 2)
               ]}
               submitButtonText={content.ui.submitScoreButton}
             />

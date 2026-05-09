@@ -12,8 +12,7 @@ const state = {
   currentStageIndex: 0,
   dayScores: {
     day1: 0,
-    day2: 0,
-    day3: 0
+    day2: 0
   },
   totalScore: 0,
   answeredStageIds: [],
@@ -33,37 +32,26 @@ while (!state.completed) {
   advance();
 }
 
-assert(visitedStageIds.join(",") === "1-1,1-2,1-3,1-4,2-1,2-2,2-3,2-4,3-1,3-2,3-3,3-4", "流程必須依 Day 1 → Day 2 → Day 3 且不可跳關");
+assert(visitedStageIds.join(",") === "1-1,1-2,1-3,1-4,2-1,2-2,2-3,2-4", "流程必須依 Day 1 → Day 2 且不可跳關");
 assert(!visitedStageIds.includes("1-0"), "D1-0 是非計分 intro，不可混入計分 stage 流程");
 assert(state.dayScores.day1 === 100, "全答對時 Day 1 必須為 100 分");
 assert(state.dayScores.day2 === 100, "全答對時 Day 2 必須為 100 分");
-assert(state.dayScores.day3 === 100, "全答對時 Day 3 必須為 100 分");
-assert(state.totalScore === 300, "全答對時總分必須為 300 分");
-assert(state.unlockedBranches.includes("ivy"), "Day 1 等於 100 時，Day 2 結束後必須解鎖艾薇");
-assert(state.unlockedBranches.includes("shino"), "Day 1 + Day 2 大於等於 150 時，Day 3 結束後必須解鎖紙乃");
-
-const noIvyState = createStateWithScores({ day1: 75, day2: 100, day3: 0 });
-assert(!doesBranchUnlock(content.hiddenBranches.find((branch) => branch.id === "ivy"), noIvyState), "Day 1 不等於 100 時不可解鎖艾薇");
-
-const shinoThresholdState = createStateWithScores({ day1: 75, day2: 75, day3: 0 });
-assert(doesBranchUnlock(content.hiddenBranches.find((branch) => branch.id === "shino"), shinoThresholdState), "Day 1 + Day 2 等於 150 時必須解鎖紙乃");
-
-const noShinoState = createStateWithScores({ day1: 50, day2: 75, day3: 0 });
-assert(!doesBranchUnlock(content.hiddenBranches.find((branch) => branch.id === "shino"), noShinoState), "Day 1 + Day 2 小於 150 時不可解鎖紙乃");
+assert(state.totalScore === 200, "全答對時總分必須為 200 分");
+assert(resolveEndingId(state) === "good", "D1+D2 大於等於 150 時必須進入 Good Ending");
 
 const routeRules = content.routeRules;
-assert(routeRules?.specialRoutes?.find((route) => route.id === "sp1")?.condition?.value === 100, "SP1 規劃門檻必須為 D1 大於等於 100");
-assert(routeRules?.specialRoutes?.find((route) => route.id === "sp2")?.condition?.value === 150, "SP2 規劃門檻必須為 D1+D2 大於等於 150");
-assert(routeRules?.endings?.find((ending) => ending.id === "good")?.condition?.mainScoreGte === 250, "Good Ending 規劃門檻必須為主線大於等於 250");
-assert(routeRules?.endings?.find((ending) => ending.id === "bad")?.condition?.mainScoreLt === 250, "Bad Ending 規劃門檻必須為主線小於 250");
-assert(routeRules?.endings?.find((ending) => ending.id === "true")?.condition?.specialScoreGte === 75, "True Ending 規劃門檻必須包含支線大於等於 75");
+assert(routeRules?.endings?.find((ending) => ending.id === "good")?.condition?.value === 150, "Good Ending 規劃門檻必須為 D1+D2 大於等於 150");
+assert(routeRules?.endings?.find((ending) => ending.id === "bad")?.condition?.operator === "lt", "Bad Ending 規劃條件必須為 D1+D2 小於 150");
+
+const badEndingState = createStateWithScores({ day1: 50, day2: 75 });
+assert(resolveEndingId(badEndingState) === "bad", "D1+D2 小於 150 時必須進入 Bad Ending");
 
 if (errors.length > 0) {
   console.error(errors.map((error) => `- ${error}`).join("\n"));
   process.exit(1);
 }
 
-console.log("流程驗證通過：順序推進、三日配分與隱藏支線判定符合規格。");
+console.log("流程驗證通過：順序推進、兩日配分與 GE/BE 判定符合規格。");
 
 function answerCurrentStage(optionId) {
   const day = content.days[state.currentDayIndex];
@@ -129,7 +117,28 @@ function compare(actual, operator, expected) {
     return actual >= expected;
   }
 
+  if (operator === "lt") {
+    return actual < expected;
+  }
+
   return false;
+}
+
+function resolveEndingId(targetState) {
+  return content.routeRules.endings.find((ending) => doesEndingMatch(ending, targetState))?.id;
+}
+
+function doesEndingMatch(ending, targetState) {
+  return evaluateCondition(ending.condition, targetState);
+}
+
+function evaluateCondition(condition, targetState) {
+  if (condition.metric === "dayScore") {
+    return compare(targetState.dayScores[condition.dayId], condition.operator, condition.value);
+  }
+
+  const scoreSum = condition.dayIds.reduce((sum, dayId) => sum + targetState.dayScores[dayId], 0);
+  return compare(scoreSum, condition.operator, condition.value);
 }
 
 function createStateWithScores(dayScores) {

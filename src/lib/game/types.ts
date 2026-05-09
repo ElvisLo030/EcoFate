@@ -1,8 +1,8 @@
-export type DayId = "day1" | "day2" | "day3";
+export type DayId = "day1" | "day2";
 
 export type BranchId = "ivy" | "shino";
 
-export type Operator = "eq" | "gte";
+export type Operator = "eq" | "gte" | "lt";
 
 export interface WelcomeContent {
   title: string;
@@ -45,7 +45,7 @@ export interface DayIntroContent {
 }
 
 export interface RouteRulesContent {
-  specialRoutes: SpecialRouteContent[];
+  specialRoutes?: SpecialRouteContent[];
   endings: EndingRouteRuleContent[];
 }
 
@@ -58,11 +58,12 @@ export interface SpecialRouteContent {
 
 export interface EndingRouteRuleContent {
   id: string;
-  condition: {
-    mainScoreGte?: number;
-    mainScoreLt?: number;
-    specialScoreGte?: number;
-  };
+  condition: BranchCondition;
+}
+
+export interface EndingResultContent {
+  title: string;
+  summary: string;
 }
 
 export interface GameContent {
@@ -86,7 +87,7 @@ export interface GameContent {
   hiddenBranches: HiddenBranchContent[];
   ending: {
     title: string;
-    summary: string;
+    results: Record<string, EndingResultContent>;
   };
 }
 
@@ -116,6 +117,7 @@ export interface StageContent {
   situation?: string;
   correctOptionId: string;
   options: ChoiceContent[];
+  responseDialogues?: Record<string, string>;
   feedback: {
     correct: string;
     wrong: string;

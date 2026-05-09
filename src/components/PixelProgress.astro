@@ -1,13 +1,13 @@
 ---
-interface Props { progressBarLabel: string; scoreLabel: string; }
-const { progressBarLabel, scoreLabel } = Astro.props;
+interface Props { progressBarLabel: string; scoreLabel: string; totalMax: number; }
+const { progressBarLabel, scoreLabel, totalMax } = Astro.props;
 const iconCount = 12;
 ---
 
 <div class="progress-wrap" aria-label={progressBarLabel}>
   <div class="progress-top">
     <span id="progress-label">{scoreLabel}</span>
-    <span id="total-score">0 / 300</span>
+    <span id="total-score">0 / {totalMax}</span>
   </div>
   <svg class="pixel-progress__defs" aria-hidden="true">
     <defs>
@@ -30,7 +30,7 @@ const iconCount = 12;
       </symbol>
     </defs>
   </svg>
-  <div class="pixel-progress" role="progressbar" aria-valuemin="0" aria-valuemax="300" aria-valuenow="0" id="score-progress">
+  <div class="pixel-progress" role="progressbar" aria-valuemin="0" aria-valuemax={totalMax} aria-valuenow="0" id="score-progress">
     <div class="pixel-progress__fill" id="score-progress-fill"></div>
     <div class="pixel-progress__icons" aria-hidden="true">
       {
