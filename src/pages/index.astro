@@ -1,0 +1,10 @@
+---
+import GameShell from "@/components/GameShell.astro";
+import gameContent from "@/data/i18n/zh-TW/game.json";
+import type { GameContent } from "@/lib/game/types";
+import "@/styles/global.css";
+
+const typedGameContent = gameContent as GameContent;
+---
+
+<GameShell content={typedGameContent} locale="zh-TW" />

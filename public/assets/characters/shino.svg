@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 400" role="img" aria-labelledby="title desc">
+  <title id="title">Shino pixel portrait</title>
+  <desc id="desc">Paper themed hidden route pixel character portrait.</desc>
+  <rect width="320" height="400" fill="none"/>
+  <g shape-rendering="crispEdges">
+    <rect x="112" y="36" width="96" height="28" fill="#6d5a38"/>
+    <rect x="90" y="64" width="140" height="106" fill="#6d5a38"/>
+    <rect x="110" y="84" width="100" height="92" fill="#ffe1ca"/>
+    <rect x="92" y="122" width="24" height="38" fill="#ffe1ca"/>
+    <rect x="204" y="122" width="24" height="38" fill="#ffe1ca"/>
+    <rect x="126" y="112" width="14" height="16" fill="#342639"/>
+    <rect x="180" y="112" width="14" height="16" fill="#342639"/>
+    <rect x="148" y="146" width="24" height="8" fill="#d95b76"/>
+    <rect x="104" y="186" width="112" height="72" fill="#f0c85a"/>
+    <rect x="88" y="210" width="24" height="78" fill="#ffe1ca"/>
+    <rect x="208" y="210" width="24" height="78" fill="#ffe1ca"/>
+    <rect x="124" y="258" width="72" height="84" fill="#fffdf7"/>
+    <rect x="108" y="248" width="104" height="22" fill="#b39be2"/>
+    <rect x="132" y="342" width="20" height="36" fill="#6d5a38"/>
+    <rect x="168" y="342" width="20" height="36" fill="#6d5a38"/>
+    <rect x="116" y="378" width="42" height="14" fill="#342639"/>
+    <rect x="162" y="378" width="42" height="14" fill="#342639"/>
+    <rect x="68" y="84" width="34" height="34" fill="#fffdf7"/>
+    <rect x="218" y="84" width="34" height="34" fill="#fffdf7"/>
+    <rect x="76" y="92" width="18" height="18" fill="#f0c85a"/>
+    <rect x="226" y="92" width="18" height="18" fill="#f0c85a"/>
+  </g>
+</svg>

@@ -1,0 +1,32 @@
+# 本機 AI 工具入口
+CLAUDE.md
+GEMINI.md
+AGENTS.md
+
+# 相依套件與建置產物
+node_modules/
+dist/
+.astro/
+.vite/
+
+# 環境變數
+.env
+.env.local
+.env.*
+!.env.example
+
+# Firebase 本機狀態與除錯紀錄
+.firebase/
+firebase-debug.log
+firestore-debug.log
+
+# 系統、編輯器與暫存檔
+.DS_Store
+*.log
+*.tsbuildinfo
+
+# 套件管理器除錯紀錄
+pnpm-debug.log*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

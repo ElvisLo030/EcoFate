@@ -1,0 +1,26 @@
+{
+  "name": "hackathon-esg-avg",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro check && astro build",
+    "preview": "astro preview",
+    "check": "astro check",
+    "verify:content": "node scripts/verify-content.mjs",
+    "verify:flow": "node scripts/verify-flow.mjs"
+  },
+  "dependencies": {
+    "@motionone/dom": "latest",
+    "astro": "latest",
+    "bad-words": "latest",
+    "firebase": "latest",
+    "gsap": "latest"
+  },
+  "devDependencies": {
+    "@astrojs/check": "latest",
+    "typescript": "latest"
+  },
+  "packageManager": "pnpm@10.0.0"
+}

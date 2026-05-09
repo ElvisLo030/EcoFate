@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 400" role="img" aria-labelledby="title desc">
+  <title id="title">Kosumi pixel portrait</title>
+  <desc id="desc">Pastel pixel style character portrait.</desc>
+  <rect width="320" height="400" fill="none"/>
+  <g shape-rendering="crispEdges">
+    <rect x="126" y="34" width="68" height="24" fill="#5b3c60"/>
+    <rect x="102" y="58" width="116" height="44" fill="#5b3c60"/>
+    <rect x="90" y="102" width="140" height="86" fill="#5b3c60"/>
+    <rect x="112" y="74" width="96" height="94" fill="#ffd7c9"/>
+    <rect x="96" y="120" width="22" height="36" fill="#ffd7c9"/>
+    <rect x="202" y="120" width="22" height="36" fill="#ffd7c9"/>
+    <rect x="126" y="110" width="14" height="16" fill="#342639"/>
+    <rect x="180" y="110" width="14" height="16" fill="#342639"/>
+    <rect x="150" y="142" width="20" height="8" fill="#d95b76"/>
+    <rect x="118" y="190" width="84" height="58" fill="#f8a8c6"/>
+    <rect x="94" y="212" width="24" height="74" fill="#ffd7c9"/>
+    <rect x="202" y="212" width="24" height="74" fill="#ffd7c9"/>
+    <rect x="130" y="248" width="60" height="90" fill="#fff8fb"/>
+    <rect x="116" y="248" width="88" height="22" fill="#7bdcb5"/>
+    <rect x="132" y="338" width="20" height="38" fill="#5b3c60"/>
+    <rect x="168" y="338" width="20" height="38" fill="#5b3c60"/>
+    <rect x="118" y="376" width="38" height="14" fill="#342639"/>
+    <rect x="164" y="376" width="38" height="14" fill="#342639"/>
+    <rect x="88" y="76" width="28" height="52" fill="#f8a8c6"/>
+    <rect x="204" y="76" width="28" height="52" fill="#f8a8c6"/>
+  </g>
+</svg>

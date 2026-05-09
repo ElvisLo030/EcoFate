@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 400" role="img" aria-labelledby="title desc">
+  <title id="title">Coco pixel portrait</title>
+  <desc id="desc">Mint pixel style character portrait.</desc>
+  <rect width="320" height="400" fill="none"/>
+  <g shape-rendering="crispEdges">
+    <rect x="112" y="38" width="96" height="30" fill="#365b58"/>
+    <rect x="92" y="68" width="136" height="92" fill="#365b58"/>
+    <rect x="108" y="86" width="104" height="88" fill="#ffd8c6"/>
+    <rect x="88" y="118" width="26" height="42" fill="#ffd8c6"/>
+    <rect x="206" y="118" width="26" height="42" fill="#ffd8c6"/>
+    <rect x="126" y="114" width="14" height="16" fill="#283338"/>
+    <rect x="180" y="114" width="14" height="16" fill="#283338"/>
+    <rect x="150" y="146" width="22" height="8" fill="#d95b76"/>
+    <rect x="104" y="184" width="112" height="72" fill="#7bdcb5"/>
+    <rect x="88" y="208" width="24" height="72" fill="#ffd8c6"/>
+    <rect x="208" y="208" width="24" height="72" fill="#ffd8c6"/>
+    <rect x="124" y="256" width="72" height="84" fill="#fffdf7"/>
+    <rect x="108" y="246" width="104" height="20" fill="#278f70"/>
+    <rect x="132" y="340" width="20" height="38" fill="#365b58"/>
+    <rect x="168" y="340" width="20" height="38" fill="#365b58"/>
+    <rect x="116" y="378" width="42" height="14" fill="#283338"/>
+    <rect x="162" y="378" width="42" height="14" fill="#283338"/>
+    <rect x="70" y="86" width="28" height="30" fill="#7bdcb5"/>
+    <rect x="222" y="86" width="28" height="30" fill="#7bdcb5"/>
+  </g>
+</svg>

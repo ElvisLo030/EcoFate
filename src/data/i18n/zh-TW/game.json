@@ -1,0 +1,523 @@
+{
+  "meta": {
+    "title": "永續心動研究社",
+    "subtitle": "三日制永續選擇 AVG",
+    "locale": "zh-TW"
+  },
+  "points": {
+    "correct": 25,
+    "wrong": 0,
+    "dayMax": 100,
+    "totalMax": 300
+  },
+  "ui": {
+    "namePromptTitle": "加入永續生活研究社",
+    "namePromptBody": "請輸入玩家名稱，研究社會以這個名字稱呼你。",
+    "namePlaceholder": "輸入玩家名稱",
+    "startButton": "開始 Day 1",
+    "nextButton": "前往下一關",
+    "finishButton": "查看三日成果",
+    "submitScoreButton": "送出排行榜",
+    "scoreLabel": "環保積分",
+    "dayScoreLabel": "本日分數",
+    "routeLockText": "流程鎖定：Day 1 → Day 2 → Day 3",
+    "correctLabel": "最佳永續行為",
+    "wrongLabel": "這次沒有得分",
+    "leaderboardUnavailable": "尚未設定 Firebase 環境變數，排行榜會在部署設定完成後啟用。"
+  },
+  "characters": {
+    "system": {
+      "displayName": "系統",
+      "portrait": "assets/characters/system.svg",
+      "accent": "#7bdcb5"
+    },
+    "kosumi": {
+      "displayName": "小澄",
+      "portrait": "assets/characters/kosumi.svg",
+      "accent": "#f8a8c6"
+    },
+    "coco": {
+      "displayName": "可可",
+      "portrait": "assets/characters/coco.svg",
+      "accent": "#7bdcb5"
+    },
+    "hakuon": {
+      "displayName": "箔音",
+      "portrait": "assets/characters/hakuon.svg",
+      "accent": "#b39be2"
+    },
+    "ivy": {
+      "displayName": "艾薇",
+      "portrait": "assets/characters/ivy.svg",
+      "accent": "#4bb991"
+    },
+    "shino": {
+      "displayName": "紙乃",
+      "portrait": "assets/characters/shino.svg",
+      "accent": "#f0c85a"
+    }
+  },
+  "days": [
+    {
+      "id": "day1",
+      "order": 1,
+      "title": "Day 1 小澄線",
+      "theme": "源頭減量",
+      "heroine": "kosumi",
+      "stages": [
+        {
+          "id": "1-1",
+          "order": 1,
+          "title": "是否自備水壺",
+          "background": "club",
+          "speaker": "kosumi",
+          "dialogue": "歡迎加入永續生活研究社，{playerName}。第一天我想看你會不會先從源頭減量開始。",
+          "situation": "早上出門前，你知道今天會在校園待一整天。你會怎麼準備飲水？",
+          "correctOptionId": "bring-bottle",
+          "options": [
+            {
+              "id": "bring-bottle",
+              "text": "自備可重複使用水壺，出門前先裝滿。"
+            },
+            {
+              "id": "buy-later",
+              "text": "不帶水，口渴時再買瓶裝水。"
+            },
+            {
+              "id": "borrow-cup",
+              "text": "只帶一次性紙杯，方便用完就丟。"
+            },
+            {
+              "id": "ignore-water",
+              "text": "不特別準備，等同學請客。"
+            }
+          ],
+          "feedback": {
+            "correct": "自備水壺能直接減少一次性容器需求，是源頭減量最穩定的做法。",
+            "wrong": "源頭減量的核心是先避免產生廢棄物。出門前自備水壺比事後回收更優先。"
+          }
+        },
+        {
+          "id": "1-2",
+          "order": 2,
+          "title": "買瓶裝水或找飲水機",
+          "background": "campus",
+          "speaker": "kosumi",
+          "dialogue": "社課前還有十分鐘。口渴的時候，選擇會把你的習慣悄悄記下來。",
+          "situation": "水壺喝完了，你旁邊有便利商店，另一棟樓有飲水機。",
+          "correctOptionId": "refill",
+          "options": [
+            {
+              "id": "buy-water",
+              "text": "直接買一瓶瓶裝水，省下走路時間。"
+            },
+            {
+              "id": "refill",
+              "text": "走到飲水機補水，繼續使用原本的水壺。"
+            },
+            {
+              "id": "buy-soda",
+              "text": "買含糖飲料，瓶子之後再想辦法處理。"
+            },
+            {
+              "id": "take-free-cup",
+              "text": "拿店裡免費杯子裝水，喝完丟掉。"
+            }
+          ],
+          "feedback": {
+            "correct": "找飲水機補水能延續重複使用，減少瓶裝水需求與包材產生。",
+            "wrong": "當可補水設施存在時，優先補水比購買新瓶裝飲品更符合源頭減量。"
+          }
+        },
+        {
+          "id": "1-3",
+          "order": 3,
+          "title": "必要購買時如何選擇",
+          "background": "shop",
+          "speaker": "kosumi",
+          "dialogue": "有時候真的會遇到不得不買的狀況。這時候，我想看你怎麼降低衝擊。",
+          "situation": "你忘了帶水壺，也找不到飲水機，必須購買飲品。",
+          "correctOptionId": "large-recyclable",
+          "options": [
+            {
+              "id": "small-many",
+              "text": "買兩瓶小瓶裝水，方便分次喝。"
+            },
+            {
+              "id": "large-recyclable",
+              "text": "選容量合適、標示清楚且可回收的單一瓶裝飲品。"
+            },
+            {
+              "id": "fancy-pack",
+              "text": "選外包裝最多、看起來最有質感的飲品。"
+            },
+            {
+              "id": "promo-bundle",
+              "text": "買促銷組合，多出來的先放著。"
+            }
+          ],
+          "feedback": {
+            "correct": "必要購買時，選擇包材較少、材質單純且標示清楚的產品，能降低後續處理負擔。",
+            "wrong": "不得不購買時仍可減量：避免過度包裝、避免多買，並確認包材容易回收。"
+          }
+        },
+        {
+          "id": "1-4",
+          "order": 4,
+          "title": "喝完瓶裝水如何處理",
+          "background": "recycle",
+          "speaker": "kosumi",
+          "dialogue": "源頭減量不是只到購買前就結束。真的產生瓶子後，也要把它送到正確的地方。",
+          "situation": "你喝完一瓶不得已購買的瓶裝水，身邊有一般垃圾桶與資源回收桶。",
+          "correctOptionId": "empty-recycle",
+          "options": [
+            {
+              "id": "trash",
+              "text": "直接丟一般垃圾，反正只是一瓶。"
+            },
+            {
+              "id": "leave-table",
+              "text": "放在桌上，讓下一個人決定。"
+            },
+            {
+              "id": "empty-recycle",
+              "text": "確認瓶內已空，再投入資源回收桶。"
+            },
+            {
+              "id": "mix-food",
+              "text": "和餐盒一起丟，回收人員會處理。"
+            }
+          ],
+          "feedback": {
+            "correct": "喝完後先倒空，再投入正確回收管道，能降低污染並提升回收品質。",
+            "wrong": "瓶器若混入一般垃圾或殘液，會降低回收效率。倒空並回收才是完整處理。"
+          }
+        }
+      ]
+    },
+    {
+      "id": "day2",
+      "order": 2,
+      "title": "Day 2 可可線",
+      "theme": "寶特瓶回收",
+      "heroine": "coco",
+      "stages": [
+        {
+          "id": "2-1",
+          "order": 1,
+          "title": "瓶內還有飲料怎麼辦",
+          "background": "campus",
+          "speaker": "coco",
+          "dialogue": "{playerName}，今天輪到寶特瓶回收。可可會盯著殘液，因為它會害整袋回收物變髒。",
+          "situation": "你手上的寶特瓶還剩一點飲料，但附近有水槽與回收桶。",
+          "correctOptionId": "empty-first",
+          "options": [
+            {
+              "id": "recycle-with-liquid",
+              "text": "直接丟回收桶，反正瓶子是可回收材質。"
+            },
+            {
+              "id": "trash-with-liquid",
+              "text": "丟一般垃圾，避免弄髒回收桶。"
+            },
+            {
+              "id": "empty-first",
+              "text": "先倒掉殘液，再準備投入回收。"
+            },
+            {
+              "id": "hide-liquid",
+              "text": "把瓶蓋鎖緊，讓殘液不要漏出來。"
+            }
+          ],
+          "feedback": {
+            "correct": "回收寶特瓶前先倒空殘液，可避免污染其他資源物並降低異味。",
+            "wrong": "寶特瓶即使可回收，殘液仍會污染回收流程。先倒空是基本步驟。"
+          }
+        },
+        {
+          "id": "2-2",
+          "order": 2,
+          "title": "是否清潔與壓扁",
+          "background": "recycle",
+          "speaker": "coco",
+          "dialogue": "瓶子不是丟進去就好。乾淨、減容，才會讓回收站工作順很多。",
+          "situation": "你已倒空寶特瓶，瓶身仍有黏膩飲料痕跡。",
+          "correctOptionId": "rinse-flatten",
+          "options": [
+            {
+              "id": "rinse-flatten",
+              "text": "簡單沖洗、瀝乾後壓扁，減少體積再回收。"
+            },
+            {
+              "id": "flatten-sticky",
+              "text": "不清洗直接壓扁，節省水。"
+            },
+            {
+              "id": "wash-heavy",
+              "text": "用大量清潔劑刷洗到像新的一樣。"
+            },
+            {
+              "id": "keep-air",
+              "text": "保持原狀，讓瓶子看起來完整。"
+            }
+          ],
+          "feedback": {
+            "correct": "簡單清潔、瀝乾與壓扁能平衡用水與回收品質，也能提升運輸效率。",
+            "wrong": "回收前應避免殘留污染，也不需要過度清潔。簡單沖洗、瀝乾、壓扁最合適。"
+          }
+        },
+        {
+          "id": "2-3",
+          "order": 3,
+          "title": "是否查詢附近回收站",
+          "background": "city",
+          "speaker": "coco",
+          "dialogue": "如果找不到正確地點，寶特瓶很容易被丟錯。你可以先查，再走。",
+          "situation": "你在陌生商圈喝完飲品，不確定附近哪裡能回收寶特瓶。",
+          "correctOptionId": "search-station",
+          "options": [
+            {
+              "id": "street-bin",
+              "text": "看到最近的垃圾桶就丟。"
+            },
+            {
+              "id": "carry-home-random",
+              "text": "帶回家，但和所有垃圾混在一起。"
+            },
+            {
+              "id": "search-station",
+              "text": "用地圖或地方政府資訊查詢附近回收點。"
+            },
+            {
+              "id": "ask-store-dump",
+              "text": "交給店員，不確認他們是否有回收。"
+            }
+          ],
+          "feedback": {
+            "correct": "不熟悉環境時先查詢回收點，能降低錯丟機率，也能建立穩定回收路徑。",
+            "wrong": "陌生地點更容易錯丟。先查詢附近回收站或公共回收設施會更可靠。"
+          }
+        },
+        {
+          "id": "2-4",
+          "order": 4,
+          "title": "高級瓶裝水消費選擇",
+          "background": "shop",
+          "speaker": "coco",
+          "dialogue": "這瓶高級水的標籤上有一片藤葉圖案。可可覺得那像某位學姊留下的暗號。",
+          "situation": "社團活動結束後，攤位推銷高級瓶裝水，主打進口水源與精美多層包裝。",
+          "correctOptionId": "refuse-premium",
+          "options": [
+            {
+              "id": "buy-premium",
+              "text": "買一瓶支持質感設計，包裝之後再回收。"
+            },
+            {
+              "id": "buy-many-gift",
+              "text": "買整組送同學，讓大家一起體驗。"
+            },
+            {
+              "id": "refuse-premium",
+              "text": "婉拒非必要瓶裝水，改用自備水壺補水。"
+            },
+            {
+              "id": "keep-bottle-decoration",
+              "text": "買來當裝飾，喝不喝都沒關係。"
+            }
+          ],
+          "feedback": {
+            "correct": "高價與精美包裝不等於永續。能避免的非必要瓶裝水，仍應優先拒絕。",
+            "wrong": "即使包裝可回收，非必要消費仍會產生資源消耗。拒絕過度包裝是進階減量判斷。"
+          },
+          "foreshadow": {
+            "branchId": "ivy",
+            "text": "藤葉標記微微發亮，像是在等待真正理解源頭減量的人。"
+          }
+        }
+      ]
+    },
+    {
+      "id": "day3",
+      "order": 3,
+      "title": "Day 3 箔音線",
+      "theme": "複合包材分類",
+      "heroine": "hakuon",
+      "stages": [
+        {
+          "id": "3-1",
+          "order": 1,
+          "title": "鋁箔包是否能當紙類",
+          "background": "library",
+          "speaker": "hakuon",
+          "dialogue": "我是箔音。複合包材看起來像紙，但分類不能只看表面。",
+          "situation": "你喝完鋁箔包飲品，外觀看起來像紙盒。",
+          "correctOptionId": "not-paper",
+          "options": [
+            {
+              "id": "paper-bin",
+              "text": "投入紙類回收，因為外層是紙。"
+            },
+            {
+              "id": "trash-direct",
+              "text": "直接丟垃圾，複合材都不能回收。"
+            },
+            {
+              "id": "not-paper",
+              "text": "不當一般紙類，依地方規定投入紙容器或指定回收。"
+            },
+            {
+              "id": "tear-layer",
+              "text": "現場撕開分層，再分別丟各類回收。"
+            }
+          ],
+          "feedback": {
+            "correct": "鋁箔包屬複合紙容器，通常不應混入一般紙類，需依地方分類規定處理。",
+            "wrong": "複合包材不能只看外層。鋁箔包多屬紙容器或指定回收類別，不能直接當一般紙類。"
+          }
+        },
+        {
+          "id": "3-2",
+          "order": 2,
+          "title": "不確定分類時怎麼辦",
+          "background": "club",
+          "speaker": "hakuon",
+          "dialogue": "分類最危險的不是不知道，是不知道卻裝作知道。先確認，才是成熟選擇。",
+          "situation": "你遇到一個看不出材質的飲品包裝，不確定該丟哪一類。",
+          "correctOptionId": "check-label-rule",
+          "options": [
+            {
+              "id": "guess-recycle",
+              "text": "猜一個最像的回收桶投入。"
+            },
+            {
+              "id": "check-label-rule",
+              "text": "查看包裝回收標示，並查地方分類規則。"
+            },
+            {
+              "id": "trash-all",
+              "text": "只要不確定就全部丟一般垃圾。"
+            },
+            {
+              "id": "ask-friend-only",
+              "text": "只問朋友，朋友說什麼就照做。"
+            }
+          ],
+          "feedback": {
+            "correct": "不確定時查標示與地方規則，可避免污染回收物流，也能提升判斷能力。",
+            "wrong": "分類規則會因地區與材質而不同。不確定時應查標示與官方規則，而不是猜。"
+          }
+        },
+        {
+          "id": "3-3",
+          "order": 3,
+          "title": "查詢高雄回收規則",
+          "background": "city",
+          "speaker": "hakuon",
+          "dialogue": "{playerName}，今天的任務地點在高雄。地方規則才是你真正的攻略。",
+          "situation": "你在高雄參加活動，手上有紙容器與複合包材，需要確認當地回收方式。",
+          "correctOptionId": "kaohsiung-official",
+          "options": [
+            {
+              "id": "old-memory",
+              "text": "照以前在其他縣市的習慣分類。"
+            },
+            {
+              "id": "kaohsiung-official",
+              "text": "查詢高雄市官方清潔隊或環保局回收分類資訊。"
+            },
+            {
+              "id": "social-rumor",
+              "text": "看社群留言最多人按讚的說法。"
+            },
+            {
+              "id": "skip-sort",
+              "text": "怕麻煩，全部帶回家再說。"
+            }
+          ],
+          "feedback": {
+            "correct": "地方政府公告是分類依據。高雄活動就查高雄官方規則，能避免跨縣市習慣誤用。",
+            "wrong": "不同城市可能有不同細節。查高雄官方資訊，比依賴舊習慣或社群傳言更準確。"
+          }
+        },
+        {
+          "id": "3-4",
+          "order": 4,
+          "title": "有殘液紙盒如何處理",
+          "background": "recycle",
+          "speaker": "hakuon",
+          "dialogue": "最後一題。紙盒底部有細小摺痕，像紙鶴留下的訊號。分類判斷會把它喚醒。",
+          "situation": "你手上的紙盒仍有殘液，且吸管套與瓶蓋零件還黏在一起。",
+          "correctOptionId": "empty-separate",
+          "options": [
+            {
+              "id": "recycle-wet",
+              "text": "直接丟紙容器回收，回收場會清洗。"
+            },
+            {
+              "id": "empty-separate",
+              "text": "倒空殘液，簡單瀝乾，依規則分開可分離零件後回收。"
+            },
+            {
+              "id": "paper-general",
+              "text": "把紙盒壓扁後投入一般紙類。"
+            },
+            {
+              "id": "trash-because-wet",
+              "text": "只要有殘液就一定丟一般垃圾。"
+            }
+          ],
+          "feedback": {
+            "correct": "複合紙容器回收前需先倒空、瀝乾，能分離的零件依地方規則分開處理。",
+            "wrong": "殘液會污染回收物；但可處理的紙容器不必直接放棄。先倒空、瀝乾並依規則分類。"
+          },
+          "foreshadow": {
+            "branchId": "shino",
+            "text": "紙盒摺痕像紙鶴展翼，等待懂得進階分類的人。"
+          }
+        }
+      ]
+    }
+  ],
+  "hiddenBranches": [
+    {
+      "id": "ivy",
+      "displayName": "艾薇",
+      "unlockAfterDay": "day2",
+      "portrait": "assets/characters/ivy.svg",
+      "conditions": [
+        {
+          "metric": "dayScore",
+          "dayId": "day1",
+          "operator": "eq",
+          "value": 100
+        }
+      ],
+      "messages": [
+        "你對源頭減量的理解已達成條件。",
+        "隱藏支線：艾薇 已解鎖。"
+      ]
+    },
+    {
+      "id": "shino",
+      "displayName": "紙乃",
+      "unlockAfterDay": "day3",
+      "portrait": "assets/characters/shino.svg",
+      "conditions": [
+        {
+          "metric": "dayScoreSum",
+          "dayIds": ["day1", "day2"],
+          "operator": "gte",
+          "value": 150
+        }
+      ],
+      "messages": [
+        "你已具備進階分類判斷能力。",
+        "隱藏支線：紙乃 已解鎖。"
+      ]
+    }
+  ],
+  "ending": {
+    "title": "三日研究成果",
+    "summary": "{playerName} 的三日主線最高總分為 300 分。你的環保積分會作為排行榜分數送出。"
+  }
+}

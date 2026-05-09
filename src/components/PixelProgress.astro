@@ -1,0 +1,44 @@
+---
+const iconCount = 12;
+---
+
+<div class="progress-wrap" aria-label="環保積分進度">
+  <div class="progress-top">
+    <span id="progress-label">環保積分</span>
+    <span id="total-score">0 / 300</span>
+  </div>
+  <svg class="pixel-progress__defs" aria-hidden="true">
+    <defs>
+      <symbol id="pixel-leaf-icon" viewBox="0 0 16 16">
+        <rect x="8" y="1" width="3" height="3"></rect>
+        <rect x="6" y="3" width="5" height="3"></rect>
+        <rect x="4" y="5" width="6" height="3"></rect>
+        <rect x="3" y="7" width="5" height="3"></rect>
+        <rect x="5" y="9" width="3" height="3"></rect>
+        <rect x="7" y="11" width="2" height="3"></rect>
+        <rect x="9" y="9" width="2" height="2"></rect>
+      </symbol>
+      <symbol id="pixel-heart-icon" viewBox="0 0 16 16">
+        <rect x="3" y="2" width="3" height="3"></rect>
+        <rect x="10" y="2" width="3" height="3"></rect>
+        <rect x="2" y="4" width="12" height="4"></rect>
+        <rect x="3" y="8" width="10" height="3"></rect>
+        <rect x="5" y="11" width="6" height="2"></rect>
+        <rect x="7" y="13" width="2" height="2"></rect>
+      </symbol>
+    </defs>
+  </svg>
+  <div class="pixel-progress" role="progressbar" aria-valuemin="0" aria-valuemax="300" aria-valuenow="0" id="score-progress">
+    <div class="pixel-progress__fill" id="score-progress-fill"></div>
+    <div class="pixel-progress__icons" aria-hidden="true">
+      {
+        Array.from({ length: iconCount }).map(() => (
+          <svg class="progress-icon is-leaf" data-state="leaf" viewBox="0 0 16 16" shape-rendering="crispEdges">
+            <use class="progress-icon__leaf" href="#pixel-leaf-icon"></use>
+            <use class="progress-icon__heart" href="#pixel-heart-icon"></use>
+          </svg>
+        ))
+      }
+    </div>
+  </div>
+</div>

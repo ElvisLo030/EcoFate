@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 400" role="img" aria-labelledby="title desc">
+  <title id="title">Hakuon pixel portrait</title>
+  <desc id="desc">Violet pixel style character portrait.</desc>
+  <rect width="320" height="400" fill="none"/>
+  <g shape-rendering="crispEdges">
+    <rect x="114" y="30" width="92" height="28" fill="#4c456a"/>
+    <rect x="88" y="58" width="144" height="112" fill="#4c456a"/>
+    <rect x="110" y="82" width="100" height="92" fill="#ffe0ce"/>
+    <rect x="92" y="120" width="24" height="38" fill="#ffe0ce"/>
+    <rect x="204" y="120" width="24" height="38" fill="#ffe0ce"/>
+    <rect x="126" y="112" width="14" height="16" fill="#342639"/>
+    <rect x="180" y="112" width="14" height="16" fill="#342639"/>
+    <rect x="148" y="144" width="24" height="8" fill="#d95b76"/>
+    <rect x="106" y="184" width="108" height="70" fill="#b39be2"/>
+    <rect x="88" y="210" width="24" height="76" fill="#ffe0ce"/>
+    <rect x="208" y="210" width="24" height="76" fill="#ffe0ce"/>
+    <rect x="122" y="254" width="76" height="88" fill="#fff8fb"/>
+    <rect x="108" y="244" width="104" height="22" fill="#f0c85a"/>
+    <rect x="132" y="342" width="20" height="36" fill="#4c456a"/>
+    <rect x="168" y="342" width="20" height="36" fill="#4c456a"/>
+    <rect x="116" y="378" width="42" height="14" fill="#342639"/>
+    <rect x="162" y="378" width="42" height="14" fill="#342639"/>
+    <rect x="230" y="106" width="22" height="58" fill="#d8c9ff"/>
+  </g>
+</svg>

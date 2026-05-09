@@ -1,0 +1,101 @@
+---
+import { ClientRouter } from "astro:transitions";
+import ChoiceList from "@/components/ChoiceList.astro";
+import DialogBox from "@/components/DialogBox.astro";
+import Leaderboard from "@/components/Leaderboard.astro";
+import PixelProgress from "@/components/PixelProgress.astro";
+import SceneStage from "@/components/SceneStage.astro";
+import { validateSequentialContent } from "@/lib/game/engine";
+import type { GameContent } from "@/lib/game/types";
+
+interface Props {
+  content: GameContent;
+  locale: string;
+}
+
+const { content, locale } = Astro.props;
+const contentErrors = validateSequentialContent(content);
+
+if (contentErrors.length > 0) {
+  throw new Error(`遊戲內容不符合流程規格：${contentErrors.join("；")}`);
+}
+
+const serializedContent = JSON.stringify(content).replaceAll("<", "\\u003c");
+---
+
+<!doctype html>
+<html lang={locale}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={content.meta.subtitle} />
+    <title>{content.meta.title}</title>
+    <ClientRouter />
+  </head>
+  <body>
+    <main class="app-shell">
+      <div class="game-window" data-view-transition>
+        <header class="title-bar">
+          <div class="title-meta">
+            <div class="window-controls" aria-hidden="true">
+              <span class="window-dot"></span>
+              <span class="window-dot"></span>
+              <span class="window-dot"></span>
+            </div>
+            <h1 class="brand">{content.meta.title}</h1>
+          </div>
+          <strong>{content.meta.subtitle}</strong>
+        </header>
+
+        <section class="status-strip" aria-label="遊戲狀態">
+          <div class="stat-box">
+            <span class="stat-label">玩家</span>
+            <span class="stat-value" id="player-name-label">未命名</span>
+          </div>
+          <PixelProgress />
+          <div class="stat-box">
+            <span class="stat-label">目前流程</span>
+            <span class="stat-value" id="route-label">Day 1</span>
+          </div>
+        </section>
+
+        <div class="main-grid">
+          <SceneStage />
+          <aside class="side-panel">
+            <section class="name-entry" id="name-entry">
+              <h2>{content.ui.namePromptTitle}</h2>
+              <p>{content.ui.namePromptBody}</p>
+              <form class="name-row" id="name-form">
+                <label class="sr-only" for="player-name-input">{content.ui.namePlaceholder}</label>
+                <input
+                  class="text-input"
+                  id="player-name-input"
+                  name="playerName"
+                  type="text"
+                  maxlength="16"
+                  autocomplete="nickname"
+                  placeholder={content.ui.namePlaceholder}
+                  required
+                />
+                <button class="pixel-button" type="submit">{content.ui.startButton}</button>
+              </form>
+              <p class="leaderboard-note" id="name-error" aria-live="polite"></p>
+            </section>
+            <DialogBox />
+            <ChoiceList />
+            <Leaderboard />
+          </aside>
+        </div>
+
+        <footer class="footer-bar">
+          <span class="route-lock">{content.ui.routeLockText}</span>
+          <button class="pixel-button" id="next-stage-button" type="button" disabled>{content.ui.nextButton}</button>
+        </footer>
+      </div>
+    </main>
+    <script is:inline type="application/json" id="game-content" set:html={serializedContent}></script>
+    <script>
+      import "@/scripts/game";
+    </script>
+  </body>
+</html>
