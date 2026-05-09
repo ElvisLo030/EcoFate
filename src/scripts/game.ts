@@ -4,7 +4,7 @@ import { advanceStage, answerStage, getCurrentDay, getCurrentStage, replacePlace
 import { clearGameState, loadGameState, resetGameState, saveGameState } from "@/lib/game/storage";
 import type { AnswerResult, GameContent, PrologueScene, StageContent } from "@/lib/game/types";
 import { createLeaderboardService } from "@/lib/leaderboard/firebase";
-import { sanitizeNickname } from "@/lib/security/profanity";
+import { sanitizeNickname, MAX_NICKNAME_LENGTH } from "@/lib/security/profanity";
 
 const content = readContent();
 const leaderboard = createLeaderboardService();
@@ -62,6 +62,10 @@ let prologueCompleted = false;
 let prologuePhase: ProloguePhase = "pre-choice";
 let prologuePendingChoiceId: string | null = null;
 
+// 一次性初始化固定 UI 文字（不屬於遊戲邏輯，只設定一次）
+const continueSpan = refs.dialogContinue.querySelector("span");
+if (continueSpan) continueSpan.textContent = content.ui.dialogContinueText;
+
 // 設定面板控制
 const settingsPanel = document.getElementById("settings-panel") as HTMLDivElement | null;
 const settingsClose = document.getElementById("settings-close") as HTMLButtonElement | null;
@@ -114,7 +118,14 @@ refs.nextButton.addEventListener("click", () => {
     if (!nameInput) return;
     const result = sanitizeNickname(nameInput.value);
     if (!result.ok) {
-      if (nameError) nameError.textContent = result.error ?? "";
+      if (nameError) {
+        const errorMap: Record<string, string> = {
+          empty:   content.ui.nameErrorEmpty,
+          tooLong: fmt(content.ui.nameErrorTooLong, { maxLength: MAX_NICKNAME_LENGTH }),
+          profane: content.ui.nameErrorProfane,
+        };
+        nameError.textContent = result.errorCode ? (errorMap[result.errorCode] ?? "") : "";
+      }
       return;
     }
     state = resetGameState(result.value);
@@ -187,17 +198,17 @@ refs.leaderboardForm.addEventListener("submit", async (event) => {
 
   isSubmittingScore = true;
   refs.submitScoreButton.disabled = true;
-  refs.leaderboardStatus.textContent = "送出中...";
+  refs.leaderboardStatus.textContent = content.ui.submitScoreLoading;
 
   try {
     await leaderboard.submitScore({
       playerName: state.playerName,
       score: state.totalScore
     });
-    refs.leaderboardStatus.textContent = "排行榜已送出。";
+    refs.leaderboardStatus.textContent = content.ui.submitScoreSuccess;
     await renderLeaderboard();
   } catch (error) {
-    refs.leaderboardStatus.textContent = error instanceof Error ? error.message : "排行榜送出失敗。";
+    refs.leaderboardStatus.textContent = error instanceof Error ? error.message : content.ui.submitScoreError;
   } finally {
     isSubmittingScore = false;
     refs.submitScoreButton.disabled = !leaderboard.enabled;
@@ -236,11 +247,11 @@ function render(): void {
   const selectedOptionId = getSelectedOptionId(stage);
   const isFinalStage = state.currentDayIndex === content.days.length - 1 && state.currentStageIndex === day.stages.length - 1;
 
-  refs.routeLabel.textContent = `Day ${day.order}`;
+  refs.routeLabel.textContent = fmt(content.ui.dayLabelFormat, { dayOrder: day.order });
   refs.stageTitle.textContent = `${stage.id} ${stage.title}`;
   refs.sceneVisual.dataset.bg = stage.background;
   refs.characterPortrait.src = character.portrait;
-  refs.characterPortrait.alt = `${character.displayName} 立繪`;
+  refs.characterPortrait.alt = fmt(content.ui.portraitAltFormat, { displayName: character.displayName });
   refs.speakerName.textContent = character.displayName;
   refs.speakerName.style.background = character.accent;
   refs.nextButton.textContent = content.ui.nextButton;
@@ -280,13 +291,13 @@ function renderPrologue(): void {
   refs.resultPanel.hidden = true;
   refs.nextButton.disabled = true;
   refs.nextButton.hidden = false;
-  refs.nextButton.textContent = "繼續";
-  refs.playerNameLabel.textContent = "未命名";
-  refs.routeLabel.textContent = "序章";
+  refs.nextButton.textContent = content.ui.continueButton;
+  refs.playerNameLabel.textContent = content.ui.defaultPlayerName;
+  refs.routeLabel.textContent = content.ui.prologueLabel;
   refs.stageTitle.textContent = prologue.title;
   refs.sceneVisual.dataset.bg = prologue.background;
   refs.characterPortrait.src = character.portrait;
-  refs.characterPortrait.alt = `${character.displayName} 立繪`;
+  refs.characterPortrait.alt = fmt(content.ui.portraitAltFormat, { displayName: character.displayName });
   refs.speakerName.textContent = character.displayName;
   refs.speakerName.style.background = character.accent;
   refs.totalScore.textContent = `0 / ${content.points.totalMax}`;
@@ -331,7 +342,7 @@ function handlePrologueNext(): void {
 
     // 分支對話播完後等待使用者點擊，不自動推進
     onDialogComplete = () => {
-      refs.nextButton.textContent = "繼續";
+      refs.nextButton.textContent = content.ui.continueButton;
       refs.nextButton.disabled = false;
     };
     renderDialog(scene.branchDialogue[prologuePendingChoiceId]);
@@ -343,7 +354,7 @@ function handlePrologueNext(): void {
     prologuePhase = "ending";
     refs.nextButton.disabled = true;
     onDialogComplete = () => {
-      refs.nextButton.textContent = "進入遊戲";
+      refs.nextButton.textContent = content.ui.enterGameButton;
       refs.nextButton.disabled = false;
     };
     renderDialog(scene.sharedEnding);
@@ -364,12 +375,12 @@ function renderBeforeStart(): void {
   refs.nextButton.disabled = false;
   refs.nextButton.hidden = false;
   refs.nextButton.textContent = content.ui.startButton;
-  refs.playerNameLabel.textContent = "未命名";
-  refs.routeLabel.textContent = "Day 1";
+  refs.playerNameLabel.textContent = content.ui.defaultPlayerName;
+  refs.routeLabel.textContent = fmt(content.ui.dayLabelFormat, { dayOrder: 1 });
   refs.stageTitle.textContent = content.ui.namePromptTitle;
   refs.sceneVisual.dataset.bg = "club";
   refs.characterPortrait.src = character.portrait;
-  refs.characterPortrait.alt = `${character.displayName} 立繪`;
+  refs.characterPortrait.alt = fmt(content.ui.portraitAltFormat, { displayName: character.displayName });
   refs.speakerName.textContent = character.displayName;
   refs.speakerName.style.background = character.accent;
   refs.totalScore.textContent = `0 / ${content.points.totalMax}`;
@@ -384,7 +395,7 @@ function renderBeforeStart(): void {
   input.className = "text-input";
   input.id = "player-name-input";
   input.type = "text";
-  input.maxLength = 16;
+  input.maxLength = MAX_NICKNAME_LENGTH;
   input.setAttribute("autocomplete", "nickname");
   input.placeholder = content.ui.namePlaceholder;
   input.addEventListener("keydown", (e) => {
@@ -454,7 +465,9 @@ function renderFeedback(stage: StageContent, selectedOptionId: string): void {
 
 function renderToasts(stage: StageContent, unlockedMessages: string[]): void {
   refs.toastStack.replaceChildren();
-  const messages = [...unlockedMessages.map((message) => `系統：「${message}」`)];
+  const messages = [
+    ...unlockedMessages.map((message) => fmt(content.ui.systemToastFormat, { message }))
+  ];
 
   if (stage.foreshadow) {
     messages.unshift(stage.foreshadow.text);
@@ -506,14 +519,14 @@ function renderCompleted(): void {
 
   refs.resultPanel.hidden = false;
   refs.nextButton.hidden = true;
-  refs.routeLabel.textContent = "完成";
+  refs.routeLabel.textContent = content.ui.completedLabel;
   refs.stageTitle.textContent = content.ending.title;
   refs.sceneVisual.dataset.bg = lastStage.background;
   refs.characterPortrait.src = character.portrait;
-  refs.characterPortrait.alt = `${character.displayName} 立繪`;
+  refs.characterPortrait.alt = fmt(content.ui.portraitAltFormat, { displayName: character.displayName });
   refs.speakerName.textContent = character.displayName;
   refs.speakerName.style.background = character.accent;
-  renderDialog(`研究完成，${state.playerName}。你的總環保積分是 ${state.totalScore} 分。`);
+  renderDialog(fmt(content.ui.completionDialog, { playerName: state.playerName, totalScore: state.totalScore }));
   refs.choiceList.replaceChildren();
   refs.feedbackBox.hidden = true;
   refs.toastStack.hidden = true;
@@ -583,7 +596,7 @@ function playNextSegment(): void {
   refs.speakerName.textContent = character.displayName;
   refs.speakerName.style.background = character.accent;
   refs.characterPortrait.src = character.portrait;
-  refs.characterPortrait.alt = `${character.displayName} 立繪`;
+  refs.characterPortrait.alt = fmt(content.ui.portraitAltFormat, { displayName: character.displayName });
   animate(refs.characterPortrait, { transform: ["translateY(6px)", "translateY(0)"], opacity: [0.8, 1] }, { duration: 0.22 });
 
   currentSegmentText = preprocessText(text);
@@ -632,6 +645,10 @@ function getSelectedOptionId(stage: StageContent): string | null {
   }
 
   return state.selectedAnswers[stage.id] ?? null;
+}
+
+function fmt(template: string, vars: Record<string, string | number>): string {
+  return template.replace(/\{(\w+)\}/g, (_, key) => String(vars[key] ?? `{${key}}`));
 }
 
 function readContent(): GameContent {

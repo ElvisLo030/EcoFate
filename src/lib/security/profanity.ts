@@ -1,46 +1,33 @@
 import { Filter } from "bad-words";
 
-const MAX_NICKNAME_LENGTH = 16;
+export const MAX_NICKNAME_LENGTH = 16;
+export type NicknameErrorCode = "empty" | "tooLong" | "profane";
+
 const FALLBACK_BLOCKLIST = ["髒話", "垃圾話"];
 const filter = new Filter();
 
 export interface NicknameResult {
   ok: boolean;
   value: string;
-  error?: string;
+  errorCode?: NicknameErrorCode;
 }
 
 export function sanitizeNickname(input: string): NicknameResult {
   const normalized = input.trim().replace(/\s+/g, " ");
 
   if (normalized.length < 1) {
-    return {
-      ok: false,
-      value: "",
-      error: "請輸入玩家名稱。"
-    };
+    return { ok: false, value: "", errorCode: "empty" };
   }
 
   if (normalized.length > MAX_NICKNAME_LENGTH) {
-    return {
-      ok: false,
-      value: "",
-      error: `玩家名稱最多 ${MAX_NICKNAME_LENGTH} 個字。`
-    };
+    return { ok: false, value: "", errorCode: "tooLong" };
   }
 
   if (hasProfanity(normalized)) {
-    return {
-      ok: false,
-      value: "",
-      error: "玩家名稱含有不適合公開排行榜的文字。"
-    };
+    return { ok: false, value: "", errorCode: "profane" };
   }
 
-  return {
-    ok: true,
-    value: normalized
-  };
+  return { ok: true, value: normalized };
 }
 
 function hasProfanity(value: string): boolean {

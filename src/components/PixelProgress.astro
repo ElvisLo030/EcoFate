@@ -1,10 +1,12 @@
 ---
+interface Props { progressBarLabel: string; scoreLabel: string; }
+const { progressBarLabel, scoreLabel } = Astro.props;
 const iconCount = 12;
 ---
 
-<div class="progress-wrap" aria-label="環保積分進度">
+<div class="progress-wrap" aria-label={progressBarLabel}>
   <div class="progress-top">
-    <span id="progress-label">環保積分</span>
+    <span id="progress-label">{scoreLabel}</span>
     <span id="total-score">0 / 300</span>
   </div>
   <svg class="pixel-progress__defs" aria-hidden="true">

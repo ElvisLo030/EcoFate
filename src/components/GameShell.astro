@@ -21,6 +21,10 @@ if (contentErrors.length > 0) {
 }
 
 const serializedContent = JSON.stringify(content).replaceAll("<", "\\u003c");
+
+function fmtDay(template: string, order: number): string {
+  return template.replace("{dayOrder}", String(order));
+}
 ---
 
 <!doctype html>
@@ -42,7 +46,7 @@ const serializedContent = JSON.stringify(content).replaceAll("<", "\\u003c");
             <span class="window-dot"></span>
           </div>
           <span class="settings-title" id="settings-title">{content.ui.settingsTitle}</span>
-          <button class="settings-close-btn" id="settings-close" type="button" aria-label="關閉">✕</button>
+          <button class="settings-close-btn" id="settings-close" type="button" aria-label={content.ui.closeButtonLabel}>✕</button>
         </div>
         <div class="settings-body">
           <button class="settings-action-btn settings-action-btn--warning" id="settings-restart" type="button">{content.ui.settingsRestartButton}</button>
@@ -82,10 +86,10 @@ const serializedContent = JSON.stringify(content).replaceAll("<", "\\u003c");
       </script>
     )}
     <div class="device-overlay landscape-overlay" role="alert">
-      <p class="device-overlay__msg">請將手機轉為直向遊玩</p>
+      <p class="device-overlay__msg">{content.ui.landscapeOverlayText}</p>
     </div>
     <div class="device-overlay desktop-overlay" role="alert">
-      <p class="device-overlay__msg">請使用手機遊玩此遊戲</p>
+      <p class="device-overlay__msg">{content.ui.desktopOverlayText}</p>
     </div>
     <main class="app-shell">
       <div class="game-window" data-view-transition>
@@ -98,18 +102,18 @@ const serializedContent = JSON.stringify(content).replaceAll("<", "\\u003c");
             </div>
             <h1 class="brand">{content.meta.title}</h1>
           </div>
-          <button class="settings-button" id="settings-button" type="button" aria-label="設定">⚙</button>
+          <button class="settings-button" id="settings-button" type="button" aria-label={content.ui.settingsButtonLabel}>⚙</button>
         </header>
 
-        <section class="status-strip" aria-label="遊戲狀態">
+        <section class="status-strip" aria-label={content.ui.statusBarLabel}>
           <div class="stat-box">
-            <span class="stat-label">玩家</span>
-            <span class="stat-value" id="player-name-label">未命名</span>
+            <span class="stat-label">{content.ui.playerStatLabel}</span>
+            <span class="stat-value" id="player-name-label">{content.ui.defaultPlayerName}</span>
           </div>
-          <PixelProgress />
+          <PixelProgress progressBarLabel={content.ui.progressBarLabel} scoreLabel={content.ui.scoreLabel} />
           <div class="stat-box">
-            <span class="stat-label" id="route-label">Day 1</span>
-            <span class="stat-value" id="stage-title">永續生活研究社</span>
+            <span class="stat-label" id="route-label">{fmtDay(content.ui.dayLabelFormat, 1)}</span>
+            <span class="stat-value" id="stage-title">{content.ui.namePromptTitle}</span>
           </div>
         </section>
 
@@ -117,8 +121,16 @@ const serializedContent = JSON.stringify(content).replaceAll("<", "\\u003c");
           <SceneStage />
           <aside class="side-panel">
             <DialogBox />
-            <ChoiceList />
-            <Leaderboard />
+            <ChoiceList choiceAreaLabel={content.ui.choiceAreaLabel} />
+            <Leaderboard
+              resultTitle={content.ending.title}
+              dayLabels={[
+                fmtDay(content.ui.dayLabelFormat, 1),
+                fmtDay(content.ui.dayLabelFormat, 2),
+                fmtDay(content.ui.dayLabelFormat, 3)
+              ]}
+              submitButtonText={content.ui.submitScoreButton}
+            />
           </aside>
         </div>
 

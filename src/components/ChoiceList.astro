@@ -1,7 +1,9 @@
 ---
+interface Props { choiceAreaLabel: string; }
+const { choiceAreaLabel } = Astro.props;
 ---
 
-<section class="choice-area" aria-label="選擇區">
+<section class="choice-area" aria-label={choiceAreaLabel}>
   <div class="choices" id="choice-list"></div>
   <section class="feedback-box" id="feedback-box" hidden aria-live="polite">
     <p class="feedback-title" id="feedback-title"></p>
