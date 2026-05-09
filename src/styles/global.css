@@ -787,6 +787,23 @@ button:disabled {
   font-weight: 800;
 }
 
+.scene-visual.is-hidden-unlock {
+  animation: hidden-route-flash 1.2s ease-out 1;
+  box-shadow: inset 0 0 0 4px #ffffff, 0 0 24px rgba(123, 220, 181, 0.82);
+}
+
+@keyframes hidden-route-flash {
+  0% {
+    filter: brightness(1);
+  }
+  35% {
+    filter: brightness(1.55) saturate(1.15);
+  }
+  100% {
+    filter: brightness(1);
+  }
+}
+
 .result-panel {
   display: grid;
   gap: 12px;

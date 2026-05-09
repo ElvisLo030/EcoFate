@@ -21,11 +21,21 @@ export function createInitialState(playerName: string): GameState {
       day1: 0,
       day2: 0
     },
+    branchScores: {
+      h2: 0
+    },
     totalScore: 0,
     answeredStageIds: [],
     selectedAnswers: {},
     unlockedBranches: [],
+    pendingHiddenRouteId: null,
+    currentHiddenRouteId: null,
+    currentHiddenStageIndex: 0,
+    completedIntros: [],
     completedOutros: [],
+    completedHiddenRouteIntros: [],
+    completedHiddenRoutes: [],
+    toBeContinued: false,
     completed: false,
     savedAt: Date.now()
   };

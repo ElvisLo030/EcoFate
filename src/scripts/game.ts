@@ -2,7 +2,7 @@ import { animate } from "@motionone/dom";
 import gsap from "gsap";
 import { advanceStage, answerStage, createInitialState, getCurrentDay, getCurrentStage, replacePlaceholders } from "@/lib/game/engine";
 import { clearGameState, loadGameState, resetGameState, saveGameState } from "@/lib/game/storage";
-import type { AnswerResult, BranchCondition, DayContent, DayId, DayIntroContent, DayOutroBranchContent, EndingResultContent, GameContent, GameState, PrologueScene, StageContent } from "@/lib/game/types";
+import type { AnswerResult, BranchCondition, DayContent, DayId, DayIntroContent, DayOutroBranchContent, EndingResultContent, GameContent, GameState, HiddenRouteContent, HiddenRouteId, NameDayIntroContent, PrologueScene, StageContent, StorySceneContent } from "@/lib/game/types";
 import { createLeaderboardService } from "@/lib/leaderboard/firebase";
 import { sanitizeNickname, MAX_NICKNAME_LENGTH } from "@/lib/security/profanity";
 
@@ -49,6 +49,46 @@ if (state && !Array.isArray(state.completedOutros)) {
   state.completedOutros = [];
   saveGameState(state);
 }
+if (state) {
+  let migrated = false;
+  const storedState = state as Partial<GameState> & Record<string, unknown>;
+  if (!state.branchScores) {
+    state.branchScores = { h2: 0 };
+    migrated = true;
+  } else if (typeof state.branchScores.h2 !== "number") {
+    state.branchScores.h2 = 0;
+    migrated = true;
+  }
+  if (!Array.isArray(state.completedIntros)) {
+    state.completedIntros = [];
+    migrated = true;
+  }
+  if (!Array.isArray(state.completedHiddenRouteIntros)) {
+    state.completedHiddenRouteIntros = [];
+    migrated = true;
+  }
+  if (!Array.isArray(state.completedHiddenRoutes)) {
+    state.completedHiddenRoutes = [];
+    migrated = true;
+  }
+  if (!("pendingHiddenRouteId" in storedState)) {
+    state.pendingHiddenRouteId = null;
+    migrated = true;
+  }
+  if (!("currentHiddenRouteId" in storedState)) {
+    state.currentHiddenRouteId = null;
+    migrated = true;
+  }
+  if (!("currentHiddenStageIndex" in storedState)) {
+    state.currentHiddenStageIndex = 0;
+    migrated = true;
+  }
+  if (!("toBeContinued" in storedState)) {
+    state.toBeContinued = false;
+    migrated = true;
+  }
+  if (migrated) saveGameState(state);
+}
 let latestAnswer: AnswerResult | null = null;
 let isSubmittingScore = false;
 
@@ -74,6 +114,7 @@ type DayIntroPhase = "before-name" | "name-entry" | "after-name";
 let dayIntroCompleted = Boolean(state);
 let dayIntroPhase: DayIntroPhase = "before-name";
 let activeDayOutroId: DayId | null = null;
+let activeDayOpeningId: DayId | null = null;
 
 // 一次性初始化固定 UI 文字（不屬於遊戲邏輯，只設定一次）
 const continueSpan = refs.dialogContinue.querySelector("span");
@@ -111,6 +152,7 @@ settingsRestart?.addEventListener("click", () => {
   dayIntroCompleted = false;
   dayIntroPhase = "before-name";
   activeDayOutroId = null;
+  activeDayOpeningId = null;
   render();
 });
 
@@ -158,6 +200,25 @@ refs.nextButton.addEventListener("click", () => {
 
   if (!state) return;
 
+  if (state.toBeContinued) {
+    return;
+  }
+
+  if (state.pendingHiddenRouteId) {
+    startPendingHiddenRoute();
+    return;
+  }
+
+  if (state.currentHiddenRouteId) {
+    handleHiddenRouteNext();
+    return;
+  }
+
+  if (activeDayOpeningId) {
+    completeActiveDayOpening();
+    return;
+  }
+
   if (activeDayOutroId) {
     completeActiveDayOutro();
     return;
@@ -179,7 +240,9 @@ refs.nextButton.addEventListener("click", () => {
       renderFeedback(stage, confirmedId);
     }
     renderScore();
-    refs.nextButton.textContent = latestAnswer.gameCompleted ? content.ui.finishButton : content.ui.nextButton;
+    refs.nextButton.textContent = latestAnswer.gameCompleted && !shouldRenderDayOutro(content, state)
+      ? content.ui.finishButton
+      : content.ui.nextButton;
     refs.nextButton.disabled = true;
     renderStageResponse(stage, confirmedId, () => {
       refs.nextButton.disabled = false;
@@ -281,12 +344,33 @@ function render(): void {
     return;
   }
 
+  if (state.toBeContinued) {
+    renderToBeContinued();
+    return;
+  }
+
+  if (state.pendingHiddenRouteId) {
+    renderHiddenUnlock();
+    return;
+  }
+
+  if (state.currentHiddenRouteId) {
+    renderHiddenRoute();
+    return;
+  }
+
+  if (shouldRenderDayOpening(content, state)) {
+    renderDayOpening();
+    return;
+  }
+
   if (shouldRenderDayOutro(content, state)) {
     renderDayOutro();
     return;
   }
 
   activeDayOutroId = null;
+  activeDayOpeningId = null;
   refs.resultPanel.hidden = true;
   refs.nextButton.hidden = false;
 
@@ -479,7 +563,7 @@ function renderDayIntro(): void {
   renderDialog(replacePlaceholders(intro.afterNameDialogue, requireState()));
 }
 
-function renderDayIntroNameInput(intro: DayIntroContent): void {
+function renderDayIntroNameInput(intro: NameDayIntroContent): void {
   refs.choiceList.replaceChildren();
   const input = document.createElement("input");
   input.className = "text-input";
@@ -537,6 +621,40 @@ function handleDayIntroNext(): void {
   }
 }
 
+function renderDayOpening(): void {
+  if (!state) {
+    return;
+  }
+
+  const day = getCurrentDay(content, state);
+  const intro = day.intro;
+  if (!intro || !isStoryScene(intro)) {
+    return;
+  }
+
+  renderStoryScene(intro, {
+    routeLabel: fmt(content.ui.dayLabelFormat, { dayOrder: day.order }),
+    onComplete: () => {
+      refs.nextButton.disabled = false;
+    }
+  });
+  activeDayOpeningId = day.id;
+}
+
+function completeActiveDayOpening(): void {
+  if (!state || !activeDayOpeningId) {
+    return;
+  }
+
+  if (!state.completedIntros.includes(activeDayOpeningId)) {
+    state.completedIntros.push(activeDayOpeningId);
+  }
+
+  activeDayOpeningId = null;
+  saveGameState(state);
+  render();
+}
+
 function renderDayOutro(): void {
   if (!state) {
     return;
@@ -588,6 +706,26 @@ function completeActiveDayOutro(): void {
     state.completedOutros.push(activeDayOutroId);
   }
 
+  const hiddenRoute = getUnlockedRouteAfterDay(activeDayOutroId, state);
+  if (hiddenRoute && !state.completedHiddenRoutes.includes(hiddenRoute.id)) {
+    state.pendingHiddenRouteId = hiddenRoute.id;
+    activeDayOutroId = null;
+    latestAnswer = null;
+    saveGameState(state);
+    render();
+    return;
+  }
+
+  const isLastDay = state.currentDayIndex === content.days.length - 1;
+  if (isLastDay) {
+    state.toBeContinued = true;
+    activeDayOutroId = null;
+    latestAnswer = null;
+    saveGameState(state);
+    render();
+    return;
+  }
+
   activeDayOutroId = null;
   latestAnswer = null;
   advanceStage(content, state);
@@ -605,6 +743,15 @@ function shouldRenderDayOutro(gameContent: GameContent, targetState: GameState):
     isLastStageOfDay &&
     targetState.selectedAnswers[stage.id] &&
     !targetState.completedOutros.includes(day.id)
+  );
+}
+
+function shouldRenderDayOpening(gameContent: GameContent, targetState: GameState): boolean {
+  const day = getCurrentDay(gameContent, targetState);
+  return Boolean(
+    day.intro &&
+    isStoryScene(day.intro) &&
+    !targetState.completedIntros.includes(day.id)
   );
 }
 
@@ -627,6 +774,260 @@ function hasDayOutroCondition(
   branch: DayOutroBranchContent
 ): branch is DayOutroBranchContent & { condition: BranchCondition } {
   return "condition" in branch;
+}
+
+function renderHiddenUnlock(): void {
+  if (!state?.pendingHiddenRouteId) {
+    return;
+  }
+
+  const route = getHiddenRoute(state.pendingHiddenRouteId);
+  renderStoryScene(route.unlockScene, {
+    routeLabel: route.displayName,
+    sceneEffect: "is-hidden-unlock",
+    onComplete: () => {
+      refs.nextButton.disabled = false;
+    }
+  });
+}
+
+function startPendingHiddenRoute(): void {
+  if (!state?.pendingHiddenRouteId) {
+    return;
+  }
+
+  state.currentHiddenRouteId = state.pendingHiddenRouteId;
+  state.pendingHiddenRouteId = null;
+  state.currentHiddenStageIndex = 0;
+  saveGameState(state);
+  render();
+}
+
+function renderHiddenRoute(): void {
+  if (!state?.currentHiddenRouteId) {
+    return;
+  }
+
+  const route = getHiddenRoute(state.currentHiddenRouteId);
+  refs.routeLabel.textContent = route.displayName;
+
+  if (!state.completedHiddenRouteIntros.includes(route.id)) {
+    renderStoryScene(route.intro, {
+      routeLabel: route.displayName,
+      onComplete: () => {
+        refs.nextButton.disabled = false;
+      }
+    });
+    return;
+  }
+
+  if (state.currentHiddenStageIndex >= route.stages.length) {
+    renderStoryScene(route.outro, {
+      routeLabel: route.displayName,
+      onComplete: () => {
+        refs.nextButton.textContent = content.ui.continueButton;
+        refs.nextButton.disabled = false;
+      }
+    });
+    return;
+  }
+
+  renderHiddenStage(route);
+}
+
+function renderHiddenStage(route: HiddenRouteContent): void {
+  if (!state) {
+    return;
+  }
+
+  const stage = route.stages[state.currentHiddenStageIndex];
+  const character = (stage.speaker ? content.characters[stage.speaker] : undefined) ?? content.characters.system;
+  const selectedOptionId = getSelectedOptionId(stage);
+
+  activeDayOutroId = null;
+  activeDayOpeningId = null;
+  refs.resultPanel.hidden = true;
+  refs.nextButton.hidden = false;
+  refs.nextButton.textContent = content.ui.nextButton;
+  refs.nextButton.disabled = true;
+  refs.playerNameLabel.textContent = state.playerName;
+  refs.routeLabel.textContent = route.displayName;
+  refs.stageTitle.textContent = `${stage.id} ${stage.title}`;
+  refs.sceneVisual.classList.remove("is-hidden-unlock");
+  refs.sceneVisual.dataset.bg = stage.background;
+  refs.characterPortrait.src = character.portrait;
+  refs.characterPortrait.alt = fmt(content.ui.portraitAltFormat, { displayName: character.displayName });
+  refs.speakerName.textContent = character.displayName;
+  refs.speakerName.style.background = character.accent;
+
+  const activeDialogue = selectedOptionId && stage.responseDialogues?.[selectedOptionId]
+    ? stage.responseDialogues[selectedOptionId]
+    : stage.dialogue;
+  renderDialog(replacePlaceholders(activeDialogue, state));
+
+  if (selectedOptionId) {
+    renderChoices(stage, selectedOptionId, null);
+    refs.feedbackBox.hidden = true;
+    refs.nextButton.disabled = false;
+  } else {
+    refs.choiceList.replaceChildren();
+    refs.feedbackBox.hidden = true;
+    refs.toastStack.hidden = true;
+    refs.toastStack.replaceChildren();
+    onDialogComplete = () => {
+      renderChoices(stage, null, null);
+    };
+  }
+
+  animate(refs.characterPortrait, { transform: ["translateY(8px)", "translateY(0)"], opacity: [0.78, 1] }, { duration: 0.28 });
+}
+
+function handleHiddenRouteNext(): void {
+  if (!state?.currentHiddenRouteId) {
+    return;
+  }
+
+  const route = getHiddenRoute(state.currentHiddenRouteId);
+
+  if (!state.completedHiddenRouteIntros.includes(route.id)) {
+    state.completedHiddenRouteIntros.push(route.id);
+    saveGameState(state);
+    render();
+    return;
+  }
+
+  if (state.currentHiddenStageIndex >= route.stages.length) {
+    if (!state.completedHiddenRoutes.includes(route.id)) {
+      state.completedHiddenRoutes.push(route.id);
+    }
+    state.currentHiddenRouteId = null;
+    state.currentHiddenStageIndex = 0;
+    state.toBeContinued = true;
+    saveGameState(state);
+    render();
+    return;
+  }
+
+  const stage = route.stages[state.currentHiddenStageIndex];
+  const scoredOptionId = getSelectedOptionId(stage);
+
+  if (pendingOptionId && !scoredOptionId) {
+    answerHiddenStage(route, stage, pendingOptionId);
+    saveGameState(state);
+    const confirmedId = pendingOptionId;
+    pendingOptionId = null;
+    renderChoices(stage, confirmedId, null);
+    refs.feedbackBox.hidden = true;
+    renderScore();
+    refs.nextButton.disabled = true;
+    renderStageResponse(stage, confirmedId, () => {
+      refs.nextButton.disabled = false;
+    });
+    return;
+  }
+
+  if (!scoredOptionId) return;
+  state.currentHiddenStageIndex += 1;
+  saveGameState(state);
+  render();
+}
+
+function answerHiddenStage(route: HiddenRouteContent, stage: StageContent, optionId: string): void {
+  if (!state) {
+    return;
+  }
+
+  const isCorrect = optionId === stage.correctOptionId;
+  const earnedPoints = isCorrect ? content.points.correct : content.points.wrong;
+
+  if (!state.answeredStageIds.includes(stage.id)) {
+    state.branchScores[route.id] += earnedPoints;
+    state.answeredStageIds.push(stage.id);
+    state.selectedAnswers[stage.id] = optionId;
+  }
+
+  state.savedAt = Date.now();
+}
+
+function renderToBeContinued(): void {
+  if (!state) {
+    return;
+  }
+
+  const scene = content.toBeContinued ?? {
+    id: "to-be-continued",
+    title: "後續待開放",
+    background: "club",
+    speaker: "system",
+    dialogue: "系統提示：後續劇情將在下一階段開放。"
+  };
+
+  refs.resultPanel.hidden = true;
+  refs.nextButton.hidden = true;
+  renderStoryScene(scene, {
+    routeLabel: content.ui.completedLabel,
+    hideNextButton: true,
+    onComplete: () => {}
+  });
+}
+
+function renderStoryScene(
+  scene: StorySceneContent,
+  options: { routeLabel: string; hideNextButton?: boolean; sceneEffect?: string; onComplete: () => void }
+): void {
+  const character = (scene.speaker ? content.characters[scene.speaker] : undefined) ?? content.characters.system;
+
+  isNameEntryMode = false;
+  pendingOptionId = null;
+  refs.resultPanel.hidden = true;
+  refs.nextButton.hidden = Boolean(options.hideNextButton);
+  refs.nextButton.textContent = content.ui.continueButton;
+  refs.nextButton.disabled = true;
+  refs.playerNameLabel.textContent = state?.playerName ?? content.ui.defaultPlayerName;
+  refs.routeLabel.textContent = options.routeLabel;
+  refs.stageTitle.textContent = `${scene.id} ${scene.title}`;
+  refs.sceneVisual.classList.remove("is-hidden-unlock");
+  if (options.sceneEffect) {
+    refs.sceneVisual.classList.add(options.sceneEffect);
+  }
+  refs.sceneVisual.dataset.bg = scene.background;
+  refs.characterPortrait.src = character.portrait;
+  refs.characterPortrait.alt = fmt(content.ui.portraitAltFormat, { displayName: character.displayName });
+  refs.speakerName.textContent = character.displayName;
+  refs.speakerName.style.background = character.accent;
+  refs.choiceList.replaceChildren();
+  refs.feedbackBox.hidden = true;
+  refs.toastStack.hidden = true;
+  refs.toastStack.replaceChildren();
+  if (state) renderScore();
+
+  onDialogComplete = options.onComplete;
+  renderDialog(replacePlaceholders(scene.dialogue, requireState()));
+  animate(refs.characterPortrait, { transform: ["translateY(8px)", "translateY(0)"], opacity: [0.72, 1] }, { duration: 0.3 });
+}
+
+function getUnlockedRouteAfterDay(dayId: DayId, targetState: GameState): HiddenRouteContent | undefined {
+  return content.hiddenRoutes?.find((route) =>
+    route.unlockAfterDay === dayId &&
+    !targetState.completedHiddenRoutes.includes(route.id) &&
+    evaluateCondition(route.unlockCondition, targetState)
+  );
+}
+
+function getHiddenRoute(routeId: HiddenRouteId): HiddenRouteContent {
+  const route = content.hiddenRoutes?.find((item) => item.id === routeId);
+  if (!route) {
+    throw new Error(`缺少隱藏支線資料：${routeId}`);
+  }
+  return route;
+}
+
+function isStoryScene(intro: DayIntroContent): intro is StorySceneContent {
+  return "dialogue" in intro;
+}
+
+function isNameDayIntro(intro: DayIntroContent): intro is NameDayIntroContent {
+  return "beforeNameDialogue" in intro;
 }
 
 function renderBeforeStart(): void {
@@ -925,8 +1326,9 @@ function getSelectedOptionId(stage: StageContent): string | null {
   return state.selectedAnswers[stage.id] ?? null;
 }
 
-function getDayOneIntro(): DayIntroContent | undefined {
-  return content.days.find((day) => day.id === "day1")?.intro;
+function getDayOneIntro(): NameDayIntroContent | undefined {
+  const intro = content.days.find((day) => day.id === "day1")?.intro;
+  return intro && isNameDayIntro(intro) ? intro : undefined;
 }
 
 function resolveEndingResult(targetState: GameState): EndingResultContent {

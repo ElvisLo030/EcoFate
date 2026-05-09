@@ -1,6 +1,7 @@
 export type DayId = "day1" | "day2";
 
 export type BranchId = "ivy" | "shino";
+export type HiddenRouteId = "h2";
 
 export type Operator = "eq" | "gt" | "gte" | "lt";
 
@@ -34,7 +35,15 @@ export interface NamePromptContent {
   submitButton: string;
 }
 
-export interface DayIntroContent {
+export interface StorySceneContent {
+  id: string;
+  title: string;
+  background: string;
+  speaker?: string;
+  dialogue: string;
+}
+
+export interface NameDayIntroContent {
   id: string;
   title: string;
   background: string;
@@ -43,6 +52,8 @@ export interface DayIntroContent {
   namePrompt: NamePromptContent;
   afterNameDialogue: string;
 }
+
+export type DayIntroContent = NameDayIntroContent | StorySceneContent;
 
 export interface DayOutroContent {
   id: string;
@@ -106,7 +117,9 @@ export interface GameContent {
   prologue?: PrologueContent;
   routeRules?: RouteRulesContent;
   days: DayContent[];
+  hiddenRoutes?: HiddenRouteContent[];
   hiddenBranches: HiddenBranchContent[];
+  toBeContinued?: StorySceneContent;
   ending: {
     title: string;
     results: Record<string, EndingResultContent>;
@@ -165,6 +178,19 @@ export interface HiddenBranchContent {
   messages: string[];
 }
 
+export interface HiddenRouteContent {
+  id: HiddenRouteId;
+  title: string;
+  displayName: string;
+  heroine: string;
+  unlockAfterDay: DayId;
+  unlockCondition: BranchCondition;
+  unlockScene: StorySceneContent;
+  intro: StorySceneContent;
+  stages: StageContent[];
+  outro: StorySceneContent;
+}
+
 export type BranchCondition =
   | {
       metric: "dayScore";
@@ -184,11 +210,19 @@ export interface GameState {
   currentDayIndex: number;
   currentStageIndex: number;
   dayScores: Record<DayId, number>;
+  branchScores: Record<HiddenRouteId, number>;
   totalScore: number;
   answeredStageIds: string[];
   selectedAnswers: Record<string, string>;
   unlockedBranches: BranchId[];
+  pendingHiddenRouteId: HiddenRouteId | null;
+  currentHiddenRouteId: HiddenRouteId | null;
+  currentHiddenStageIndex: number;
+  completedIntros: DayId[];
   completedOutros: DayId[];
+  completedHiddenRouteIntros: HiddenRouteId[];
+  completedHiddenRoutes: HiddenRouteId[];
+  toBeContinued: boolean;
   completed: boolean;
   savedAt: number;
 }

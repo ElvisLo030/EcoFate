@@ -58,7 +58,14 @@ function decodePayload<T>(value: string): T {
 }
 
 function createChecksum(state: GameState): string {
-  const source = `${state.playerName}|${state.totalScore}|${state.answeredStageIds.join(",")}|${state.savedAt}`;
+  const branchScore = state.branchScores ? Object.values(state.branchScores).join(",") : "";
+  const routeState = [
+    state.pendingHiddenRouteId ?? "",
+    state.currentHiddenRouteId ?? "",
+    state.currentHiddenStageIndex ?? 0,
+    state.toBeContinued ? "tbc" : ""
+  ].join(",");
+  const source = `${state.playerName}|${state.totalScore}|${branchScore}|${state.answeredStageIds.join(",")}|${routeState}|${state.savedAt}`;
   // 使用 Base64 加時間戳做輕量混淆，只防止一般玩家誤改 localStorage，不作為真正資安邊界。
   return btoa(encodeURIComponent(source)).slice(0, 24);
 }
