@@ -14,8 +14,8 @@ const expectedDays = [
     stages: [
       ["1-1", "今天有帶水壺嗎？"],
       ["1-2", "買水還是找飲水機？"],
-      ["1-3", "必要購買時如何選擇"],
-      ["1-4", "喝完瓶裝水如何處理"]
+      ["1-3", "真的需要買水時，該怎麼選？"],
+      ["1-4", "喝完瓶裝水後怎麼處理？"]
     ]
   },
   {
@@ -83,6 +83,34 @@ assert(stage12.correctOptionId === "1-2-A", "1-2 正解必須為 1-2-A");
 assert(stage12.options.map((option) => option.id).join(",") === "1-2-A,1-2-B,1-2-C,1-2-D", "1-2 選項 id 必須符合劇情文件");
 assert(hasResponsesForEveryOption(stage12), "1-2 必須為每個選項提供回覆劇情");
 assert(stage12.responseDialogues["1-2-A"].includes("系統提示：Day 1 分數 +25"), "1-2-A 回覆必須包含加分提示");
+
+const stage13 = content.days[0].stages[2];
+assert(stage13.title === "真的需要買水時，該怎麼選？", "1-3 必須套用新版標題");
+assert(stage13.correctOptionId === "1-3-C", "1-3 正解必須為 1-3-C");
+assert(stage13.options.map((option) => option.id).join(",") === "1-3-A,1-3-B,1-3-C,1-3-D", "1-3 選項 id 必須符合劇情文件");
+assert(hasResponsesForEveryOption(stage13), "1-3 必須為每個選項提供回覆劇情");
+assert(stage13.responseDialogues["1-3-C"].includes("系統提示：Day 1 分數 +25"), "1-3-C 回覆必須包含加分提示");
+
+const stage14 = content.days[0].stages[3];
+assert(stage14.title === "喝完瓶裝水後怎麼處理？", "1-4 必須套用新版標題");
+assert(stage14.correctOptionId === "1-4-A", "1-4 正解必須為 1-4-A");
+assert(stage14.options.map((option) => option.id).join(",") === "1-4-A,1-4-B,1-4-C,1-4-D", "1-4 選項 id 必須符合劇情文件");
+assert(hasResponsesForEveryOption(stage14), "1-4 必須為每個選項提供回覆劇情");
+assert(stage14.responseDialogues["1-4-A"].includes("系統提示：Day 1 分數 +25"), "1-4-A 回覆必須包含加分提示");
+
+const day1Outro = content.days[0].outro;
+const day1OutroA = day1Outro?.branches?.find((branch) => branch.id === "1-ED-A");
+const day1OutroB = day1Outro?.branches?.find((branch) => branch.id === "1-ED-B");
+assert(day1Outro?.id === "1-ED", "Day 1 必須有 1-ED 日結 outro");
+assert(day1Outro?.title === "第一天結束", "1-ED 標題必須為第一天結束");
+assert(day1Outro?.speaker === "kosumi", "1-ED 必須由小澄承接日結");
+assert(day1OutroA?.condition?.metric === "dayScore", "1-ED-A 必須檢查 Day 1 分數");
+assert(day1OutroA?.condition?.dayId === "day1", "1-ED-A 必須檢查 day1");
+assert(day1OutroA?.condition?.operator === "gt", "1-ED-A 必須在 Day 1 分數大於 50 時觸發");
+assert(day1OutroA?.condition?.value === 50, "1-ED-A 門檻必須為 50");
+assert(day1OutroA?.dialogue?.includes("{playerName}"), "1-ED-A 日結必須使用 {playerName}");
+assert(day1OutroB?.default === true, "1-ED-B 必須作為 Day 1 日結 fallback");
+assert(day1OutroB?.dialogue?.includes("地球不是替你收拾殘局的道具"), "1-ED-B 必須使用已確認文本");
 
 const goodEnding = content.routeRules?.endings?.find((ending) => ending.id === "good");
 assert(goodEnding?.condition?.metric === "dayScoreSum", "Good Ending 必須檢查 D1+D2");

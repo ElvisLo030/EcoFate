@@ -2,7 +2,7 @@ export type DayId = "day1" | "day2";
 
 export type BranchId = "ivy" | "shino";
 
-export type Operator = "eq" | "gte" | "lt";
+export type Operator = "eq" | "gt" | "gte" | "lt";
 
 export interface WelcomeContent {
   title: string;
@@ -43,6 +43,28 @@ export interface DayIntroContent {
   namePrompt: NamePromptContent;
   afterNameDialogue: string;
 }
+
+export interface DayOutroContent {
+  id: string;
+  title: string;
+  background: string;
+  speaker?: string;
+  branches: DayOutroBranchContent[];
+}
+
+export type DayOutroBranchContent =
+  | {
+      id: string;
+      condition: BranchCondition;
+      default?: false;
+      dialogue: string;
+    }
+  | {
+      id: string;
+      default: true;
+      condition?: never;
+      dialogue: string;
+    };
 
 export interface RouteRulesContent {
   specialRoutes?: SpecialRouteContent[];
@@ -104,6 +126,7 @@ export interface DayContent {
   theme: string;
   heroine: string;
   intro?: DayIntroContent;
+  outro?: DayOutroContent;
   stages: StageContent[];
 }
 
@@ -165,6 +188,7 @@ export interface GameState {
   answeredStageIds: string[];
   selectedAnswers: Record<string, string>;
   unlockedBranches: BranchId[];
+  completedOutros: DayId[];
   completed: boolean;
   savedAt: number;
 }

@@ -2,7 +2,7 @@ import { animate } from "@motionone/dom";
 import gsap from "gsap";
 import { advanceStage, answerStage, createInitialState, getCurrentDay, getCurrentStage, replacePlaceholders } from "@/lib/game/engine";
 import { clearGameState, loadGameState, resetGameState, saveGameState } from "@/lib/game/storage";
-import type { AnswerResult, BranchCondition, DayIntroContent, EndingResultContent, GameContent, GameState, PrologueScene, StageContent } from "@/lib/game/types";
+import type { AnswerResult, BranchCondition, DayContent, DayId, DayIntroContent, DayOutroBranchContent, EndingResultContent, GameContent, GameState, PrologueScene, StageContent } from "@/lib/game/types";
 import { createLeaderboardService } from "@/lib/leaderboard/firebase";
 import { sanitizeNickname, MAX_NICKNAME_LENGTH } from "@/lib/security/profanity";
 
@@ -45,6 +45,10 @@ if (state && ("day3" in state.dayScores || state.currentDayIndex >= content.days
   clearGameState();
   state = null;
 }
+if (state && !Array.isArray(state.completedOutros)) {
+  state.completedOutros = [];
+  saveGameState(state);
+}
 let latestAnswer: AnswerResult | null = null;
 let isSubmittingScore = false;
 
@@ -69,6 +73,7 @@ let prologuePendingChoiceId: string | null = null;
 type DayIntroPhase = "before-name" | "name-entry" | "after-name";
 let dayIntroCompleted = Boolean(state);
 let dayIntroPhase: DayIntroPhase = "before-name";
+let activeDayOutroId: DayId | null = null;
 
 // 一次性初始化固定 UI 文字（不屬於遊戲邏輯，只設定一次）
 const continueSpan = refs.dialogContinue.querySelector("span");
@@ -105,6 +110,7 @@ settingsRestart?.addEventListener("click", () => {
   prologuePendingChoiceId = null;
   dayIntroCompleted = false;
   dayIntroPhase = "before-name";
+  activeDayOutroId = null;
   render();
 });
 
@@ -152,6 +158,11 @@ refs.nextButton.addEventListener("click", () => {
 
   if (!state) return;
 
+  if (activeDayOutroId) {
+    completeActiveDayOutro();
+    return;
+  }
+
   const stage = getCurrentStage(content, state);
   const scoredOptionId = getSelectedOptionId(stage);
 
@@ -179,6 +190,10 @@ refs.nextButton.addEventListener("click", () => {
 
   // 已計分：前往下一關
   if (!scoredOptionId) return;
+  if (shouldRenderDayOutro(content, state)) {
+    render();
+    return;
+  }
   advanceStage(content, state);
   saveGameState(state);
   latestAnswer = null;
@@ -266,6 +281,12 @@ function render(): void {
     return;
   }
 
+  if (shouldRenderDayOutro(content, state)) {
+    renderDayOutro();
+    return;
+  }
+
+  activeDayOutroId = null;
   refs.resultPanel.hidden = true;
   refs.nextButton.hidden = false;
 
@@ -514,6 +535,98 @@ function handleDayIntroNext(): void {
     if (state) saveGameState(state);
     render();
   }
+}
+
+function renderDayOutro(): void {
+  if (!state) {
+    return;
+  }
+
+  const day = getCurrentDay(content, state);
+  const outro = day.outro;
+  if (!outro) {
+    return;
+  }
+
+  const branch = resolveDayOutroBranch(day, state);
+  const character = (outro.speaker ? content.characters[outro.speaker] : undefined) ?? content.characters.system;
+
+  activeDayOutroId = day.id;
+  isNameEntryMode = false;
+  pendingOptionId = null;
+  refs.resultPanel.hidden = true;
+  refs.nextButton.hidden = false;
+  refs.nextButton.textContent = content.ui.nextButton;
+  refs.nextButton.disabled = true;
+  refs.playerNameLabel.textContent = state.playerName;
+  refs.routeLabel.textContent = fmt(content.ui.dayLabelFormat, { dayOrder: day.order });
+  refs.stageTitle.textContent = `${outro.id} ${outro.title}`;
+  refs.sceneVisual.dataset.bg = outro.background;
+  refs.characterPortrait.src = character.portrait;
+  refs.characterPortrait.alt = fmt(content.ui.portraitAltFormat, { displayName: character.displayName });
+  refs.speakerName.textContent = character.displayName;
+  refs.speakerName.style.background = character.accent;
+  refs.choiceList.replaceChildren();
+  refs.feedbackBox.hidden = true;
+  refs.toastStack.hidden = true;
+  refs.toastStack.replaceChildren();
+  renderScore();
+
+  onDialogComplete = () => {
+    refs.nextButton.disabled = false;
+  };
+  renderDialog(replacePlaceholders(branch.dialogue, state));
+  animate(refs.characterPortrait, { transform: ["translateY(8px)", "translateY(0)"], opacity: [0.78, 1] }, { duration: 0.28 });
+}
+
+function completeActiveDayOutro(): void {
+  if (!state || !activeDayOutroId) {
+    return;
+  }
+
+  if (!state.completedOutros.includes(activeDayOutroId)) {
+    state.completedOutros.push(activeDayOutroId);
+  }
+
+  activeDayOutroId = null;
+  latestAnswer = null;
+  advanceStage(content, state);
+  saveGameState(state);
+  render();
+}
+
+function shouldRenderDayOutro(gameContent: GameContent, targetState: GameState): boolean {
+  const day = getCurrentDay(gameContent, targetState);
+  const stage = getCurrentStage(gameContent, targetState);
+  const isLastStageOfDay = targetState.currentStageIndex === day.stages.length - 1;
+
+  return Boolean(
+    day.outro &&
+    isLastStageOfDay &&
+    targetState.selectedAnswers[stage.id] &&
+    !targetState.completedOutros.includes(day.id)
+  );
+}
+
+function resolveDayOutroBranch(day: DayContent, targetState: GameState): DayOutroBranchContent {
+  const outro = day.outro;
+  if (!outro) {
+    throw new Error(`${day.id} 缺少日結資料。`);
+  }
+
+  const matched = outro.branches.find((branch) => hasDayOutroCondition(branch) && evaluateCondition(branch.condition, targetState));
+  const fallback = outro.branches.find((branch) => branch.default) ?? outro.branches[0];
+  if (!matched && !fallback) {
+    throw new Error(`${outro.id} 缺少可播放的日結分支。`);
+  }
+
+  return matched ?? fallback;
+}
+
+function hasDayOutroCondition(
+  branch: DayOutroBranchContent
+): branch is DayOutroBranchContent & { condition: BranchCondition } {
+  return "condition" in branch;
 }
 
 function renderBeforeStart(): void {
@@ -835,6 +948,8 @@ function evaluateCondition(condition: BranchCondition, targetState: GameState): 
   switch (condition.operator) {
     case "eq":
       return actual === condition.value;
+    case "gt":
+      return actual > condition.value;
     case "gte":
       return actual >= condition.value;
     case "lt":

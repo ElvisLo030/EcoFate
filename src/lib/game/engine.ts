@@ -25,6 +25,7 @@ export function createInitialState(playerName: string): GameState {
     answeredStageIds: [],
     selectedAnswers: {},
     unlockedBranches: [],
+    completedOutros: [],
     completed: false,
     savedAt: Date.now()
   };
@@ -168,6 +169,8 @@ function compare(actual: number, operator: Operator, expected: number): boolean 
   switch (operator) {
     case "eq":
       return actual === expected;
+    case "gt":
+      return actual > expected;
     case "gte":
       return actual >= expected;
     case "lt":

@@ -18,26 +18,33 @@ const state = {
   answeredStageIds: [],
   selectedAnswers: {},
   unlockedBranches: [],
+  completedOutros: [],
   completed: false
 };
 
 const visitedStageIds = [];
+const visitedNodeIds = [];
 assert(content.days[0]?.intro?.id === "1-0", "流程必須在 Day 1 主線前定義 D1-0 intro");
 
 while (!state.completed) {
   const day = content.days[state.currentDayIndex];
   const stage = day.stages[state.currentStageIndex];
   visitedStageIds.push(stage.id);
+  visitedNodeIds.push(stage.id);
   answerCurrentStage(stage.correctOptionId);
   advance();
 }
 
 assert(visitedStageIds.join(",") === "1-1,1-2,1-3,1-4,2-1,2-2,2-3,2-4", "流程必須依 Day 1 → Day 2 且不可跳關");
+assert(visitedNodeIds.join(",") === "1-1,1-2,1-3,1-4,1-ED-A,2-1,2-2,2-3,2-4", "全答對流程必須在 Day 1 後播放 1-ED-A 再進 Day 2");
 assert(!visitedStageIds.includes("1-0"), "D1-0 是非計分 intro，不可混入計分 stage 流程");
+assert(!visitedStageIds.includes("1-ED-A"), "1-ED-A 是日結，不可混入計分 stage 流程");
 assert(state.dayScores.day1 === 100, "全答對時 Day 1 必須為 100 分");
 assert(state.dayScores.day2 === 100, "全答對時 Day 2 必須為 100 分");
 assert(state.totalScore === 200, "全答對時總分必須為 200 分");
 assert(resolveEndingId(state) === "good", "D1+D2 大於等於 150 時必須進入 Good Ending");
+assert(resolveDayOutroId(createStateWithScores({ day1: 50, day2: 0 })) === "1-ED-B", "Day 1 分數 50 以下必須進入 1-ED-B");
+assert(resolveDayOutroId(createStateWithScores({ day1: 75, day2: 0 })) === "1-ED-A", "Day 1 分數大於 50 必須進入 1-ED-A");
 
 const routeRules = content.routeRules;
 assert(routeRules?.endings?.find((ending) => ending.id === "good")?.condition?.value === 150, "Good Ending 規劃門檻必須為 D1+D2 大於等於 150");
@@ -71,6 +78,11 @@ function advance() {
 
   if (isLastStageOfDay) {
     unlockAfterDay(day.id);
+  }
+
+  if (isLastStageOfDay && day.outro && !state.completedOutros.includes(day.id)) {
+    visitedNodeIds.push(resolveDayOutroId(state));
+    state.completedOutros.push(day.id);
   }
 
   if (isLastStageOfDay && state.currentDayIndex === content.days.length - 1) {
@@ -113,6 +125,10 @@ function compare(actual, operator, expected) {
     return actual === expected;
   }
 
+  if (operator === "gt") {
+    return actual > expected;
+  }
+
   if (operator === "gte") {
     return actual >= expected;
   }
@@ -126,6 +142,13 @@ function compare(actual, operator, expected) {
 
 function resolveEndingId(targetState) {
   return content.routeRules.endings.find((ending) => doesEndingMatch(ending, targetState))?.id;
+}
+
+function resolveDayOutroId(targetState) {
+  const day1Outro = content.days.find((day) => day.id === "day1")?.outro;
+  const matched = day1Outro?.branches.find((branch) => branch.condition && evaluateCondition(branch.condition, targetState));
+  const fallback = day1Outro?.branches.find((branch) => branch.default);
+  return matched?.id ?? fallback?.id;
 }
 
 function doesEndingMatch(ending, targetState) {
