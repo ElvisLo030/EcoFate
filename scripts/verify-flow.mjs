@@ -23,6 +23,7 @@ const state = {
 };
 
 const visitedStageIds = [];
+assert(content.days[0]?.intro?.id === "1-0", "流程必須在 Day 1 主線前定義 D1-0 intro");
 
 while (!state.completed) {
   const day = content.days[state.currentDayIndex];
@@ -33,6 +34,7 @@ while (!state.completed) {
 }
 
 assert(visitedStageIds.join(",") === "1-1,1-2,1-3,1-4,2-1,2-2,2-3,2-4,3-1,3-2,3-3,3-4", "流程必須依 Day 1 → Day 2 → Day 3 且不可跳關");
+assert(!visitedStageIds.includes("1-0"), "D1-0 是非計分 intro，不可混入計分 stage 流程");
 assert(state.dayScores.day1 === 100, "全答對時 Day 1 必須為 100 分");
 assert(state.dayScores.day2 === 100, "全答對時 Day 2 必須為 100 分");
 assert(state.dayScores.day3 === 100, "全答對時 Day 3 必須為 100 分");
@@ -48,6 +50,13 @@ assert(doesBranchUnlock(content.hiddenBranches.find((branch) => branch.id === "s
 
 const noShinoState = createStateWithScores({ day1: 50, day2: 75, day3: 0 });
 assert(!doesBranchUnlock(content.hiddenBranches.find((branch) => branch.id === "shino"), noShinoState), "Day 1 + Day 2 小於 150 時不可解鎖紙乃");
+
+const routeRules = content.routeRules;
+assert(routeRules?.specialRoutes?.find((route) => route.id === "sp1")?.condition?.value === 100, "SP1 規劃門檻必須為 D1 大於等於 100");
+assert(routeRules?.specialRoutes?.find((route) => route.id === "sp2")?.condition?.value === 150, "SP2 規劃門檻必須為 D1+D2 大於等於 150");
+assert(routeRules?.endings?.find((ending) => ending.id === "good")?.condition?.mainScoreGte === 250, "Good Ending 規劃門檻必須為主線大於等於 250");
+assert(routeRules?.endings?.find((ending) => ending.id === "bad")?.condition?.mainScoreLt === 250, "Bad Ending 規劃門檻必須為主線小於 250");
+assert(routeRules?.endings?.find((ending) => ending.id === "true")?.condition?.specialScoreGte === 75, "True Ending 規劃門檻必須包含支線大於等於 75");
 
 if (errors.length > 0) {
   console.error(errors.map((error) => `- ${error}`).join("\n"));

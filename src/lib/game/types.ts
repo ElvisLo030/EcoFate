@@ -29,6 +29,42 @@ export interface PrologueContent {
   scenes: PrologueScene[];
 }
 
+export interface NamePromptContent {
+  placeholder: string;
+  submitButton: string;
+}
+
+export interface DayIntroContent {
+  id: string;
+  title: string;
+  background: string;
+  speaker?: string;
+  beforeNameDialogue: string;
+  namePrompt: NamePromptContent;
+  afterNameDialogue: string;
+}
+
+export interface RouteRulesContent {
+  specialRoutes: SpecialRouteContent[];
+  endings: EndingRouteRuleContent[];
+}
+
+export interface SpecialRouteContent {
+  id: string;
+  unlockAfterDay: DayId;
+  condition: BranchCondition;
+  nextDay: DayId;
+}
+
+export interface EndingRouteRuleContent {
+  id: string;
+  condition: {
+    mainScoreGte?: number;
+    mainScoreLt?: number;
+    specialScoreGte?: number;
+  };
+}
+
 export interface GameContent {
   meta: {
     title: string;
@@ -45,6 +81,7 @@ export interface GameContent {
   ui: Record<string, string>;
   characters: Record<string, CharacterContent>;
   prologue?: PrologueContent;
+  routeRules?: RouteRulesContent;
   days: DayContent[];
   hiddenBranches: HiddenBranchContent[];
   ending: {
@@ -65,6 +102,7 @@ export interface DayContent {
   title: string;
   theme: string;
   heroine: string;
+  intro?: DayIntroContent;
   stages: StageContent[];
 }
 

@@ -14,6 +14,53 @@
     "dayMax": 100,
     "totalMax": 300
   },
+  "routeRules": {
+    "specialRoutes": [
+      {
+        "id": "sp1",
+        "unlockAfterDay": "day1",
+        "condition": {
+          "metric": "dayScore",
+          "dayId": "day1",
+          "operator": "gte",
+          "value": 100
+        },
+        "nextDay": "day2"
+      },
+      {
+        "id": "sp2",
+        "unlockAfterDay": "day2",
+        "condition": {
+          "metric": "dayScoreSum",
+          "dayIds": ["day1", "day2"],
+          "operator": "gte",
+          "value": 150
+        },
+        "nextDay": "day3"
+      }
+    ],
+    "endings": [
+      {
+        "id": "good",
+        "condition": {
+          "mainScoreGte": 250
+        }
+      },
+      {
+        "id": "bad",
+        "condition": {
+          "mainScoreLt": 250
+        }
+      },
+      {
+        "id": "true",
+        "condition": {
+          "mainScoreGte": 250,
+          "specialScoreGte": 75
+        }
+      }
+    ]
+  },
   "ui": {
     "namePromptTitle": "加入永續生活研究社",
     "namePromptBody": "請輸入玩家名稱，研究社會以這個名字稱呼你。",
@@ -36,7 +83,7 @@
     "continueButton": "繼續",
     "enterGameButton": "進入遊戲",
     "defaultPlayerName": "未知的冒險者",
-    "prologueLabel": "D0-序章",
+    "prologueLabel": "D0",
     "completedLabel": "完成",
     "dayLabelFormat": "Day {dayOrder}",
     "portraitAltFormat": "{displayName} 立繪",
@@ -121,6 +168,18 @@
       "title": "Day 1 小澄線",
       "theme": "源頭減量",
       "heroine": "kosumi",
+      "intro": {
+        "id": "1-0",
+        "title": "開場",
+        "background": "club",
+        "speaker": "kosumi",
+        "beforeNameDialogue": "隔天放學後。\n你再次來到永續生活研究社。</br>昨天那台奇怪的機器，\n一直在你腦中揮之不去。</br>你推開門。</br>這一次，教室裡有人。</br>靠窗的位置坐著一位安靜的少女。\n桌上放著一本筆記本，旁邊是一個透明水壺。</br>她抬頭看你。</br>小澄：「你來了」</br>你愣住。</br>「你知道我？」</br>小澄：「昨天，命運機醒了」\n她看向角落那台機器。</br>小澄：「所以我想...應該是你」</br>她站起來。</br>小澄：「我是小澄」\n小澄：「如果接下來要一起行動...」\n她有些不好意思地低下頭。</br>小澄：「我可以知道你的名字嗎？」",
+        "namePrompt": {
+          "placeholder": "請輸入你的暱稱",
+          "submitButton": "告訴小澄"
+        },
+        "afterNameDialogue": "小澄：「{playerName}...」</br>她輕輕念了一次。\n像是在確認這個名字，是不是能被好好放進心裡。</br>小澄：「嗯，我記住了」\n她抬頭看著你。</br>小澄：「接下來，一起嘗試讓這個世界更美好吧！」</br>小澄：「如果是和你一起的話...我想，我會比較安心」"
+      },
       "stages": [
         {
           "id": "1-1",

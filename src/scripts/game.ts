@@ -1,8 +1,8 @@
 import { animate } from "@motionone/dom";
 import gsap from "gsap";
-import { advanceStage, answerStage, getCurrentDay, getCurrentStage, replacePlaceholders } from "@/lib/game/engine";
+import { advanceStage, answerStage, createInitialState, getCurrentDay, getCurrentStage, replacePlaceholders } from "@/lib/game/engine";
 import { clearGameState, loadGameState, resetGameState, saveGameState } from "@/lib/game/storage";
-import type { AnswerResult, GameContent, PrologueScene, StageContent } from "@/lib/game/types";
+import type { AnswerResult, DayIntroContent, GameContent, GameState, PrologueScene, StageContent } from "@/lib/game/types";
 import { createLeaderboardService } from "@/lib/leaderboard/firebase";
 import { sanitizeNickname, MAX_NICKNAME_LENGTH } from "@/lib/security/profanity";
 
@@ -62,6 +62,11 @@ let prologueCompleted = false;
 let prologuePhase: ProloguePhase = "pre-choice";
 let prologuePendingChoiceId: string | null = null;
 
+// D1-0 開場狀態：非計分 intro，名稱輸入完成後才建立正式存檔。
+type DayIntroPhase = "before-name" | "name-entry" | "after-name";
+let dayIntroCompleted = Boolean(state);
+let dayIntroPhase: DayIntroPhase = "before-name";
+
 // 一次性初始化固定 UI 文字（不屬於遊戲邏輯，只設定一次）
 const continueSpan = refs.dialogContinue.querySelector("span");
 if (continueSpan) continueSpan.textContent = content.ui.dialogContinueText;
@@ -95,6 +100,8 @@ settingsRestart?.addEventListener("click", () => {
   prologueCompleted = false;
   prologuePhase = "pre-choice";
   prologuePendingChoiceId = null;
+  dayIntroCompleted = false;
+  dayIntroPhase = "before-name";
   render();
 });
 
@@ -108,6 +115,11 @@ refs.nextButton.addEventListener("click", () => {
   // 序章流程
   if (!prologueCompleted && content.prologue) {
     handlePrologueNext();
+    return;
+  }
+
+  if (!dayIntroCompleted && getDayOneIntro()) {
+    handleDayIntroNext();
     return;
   }
 
@@ -218,6 +230,11 @@ refs.leaderboardForm.addEventListener("submit", async (event) => {
 render();
 
 function render(): void {
+  if (!dayIntroCompleted && getDayOneIntro() && (prologueCompleted || !content.prologue)) {
+    renderDayIntro();
+    return;
+  }
+
   if (!state) {
     if (!prologueCompleted && content.prologue) {
       renderPrologue();
@@ -363,7 +380,121 @@ function handlePrologueNext(): void {
 
   if (prologuePhase === "ending") {
     prologueCompleted = true;
+    render();
+  }
+}
+
+function renderDayIntro(): void {
+  const intro = getDayOneIntro();
+  if (!intro) {
     renderBeforeStart();
+    return;
+  }
+
+  const character = (intro.speaker ? content.characters[intro.speaker] : undefined) ?? content.characters.system;
+
+  isNameEntryMode = dayIntroPhase === "name-entry";
+  pendingOptionId = null;
+  refs.resultPanel.hidden = true;
+  refs.nextButton.hidden = false;
+  refs.nextButton.textContent = content.ui.continueButton;
+  refs.playerNameLabel.textContent = state?.playerName ?? content.ui.defaultPlayerName;
+  refs.routeLabel.textContent = fmt(content.ui.dayLabelFormat, { dayOrder: 1 });
+  refs.stageTitle.textContent = `${intro.id} ${intro.title}`;
+  refs.sceneVisual.dataset.bg = intro.background;
+  refs.characterPortrait.src = character.portrait;
+  refs.characterPortrait.alt = fmt(content.ui.portraitAltFormat, { displayName: character.displayName });
+  refs.speakerName.textContent = character.displayName;
+  refs.speakerName.style.background = character.accent;
+  refs.totalScore.textContent = `0 / ${content.points.totalMax}`;
+  refs.scoreProgress.setAttribute("aria-valuenow", "0");
+  refs.scoreProgressFill.style.width = "0%";
+  refs.feedbackBox.hidden = true;
+  refs.toastStack.hidden = true;
+  refs.toastStack.replaceChildren();
+
+  if (dayIntroPhase === "before-name") {
+    refs.nextButton.disabled = true;
+    refs.choiceList.replaceChildren();
+    onDialogComplete = () => {
+      dayIntroPhase = "name-entry";
+      renderDayIntro();
+    };
+    renderDialog(intro.beforeNameDialogue);
+    return;
+  }
+
+  if (dayIntroPhase === "name-entry") {
+    refs.nextButton.disabled = false;
+    refs.nextButton.textContent = intro.namePrompt.submitButton;
+    renderDayIntroNameInput(intro);
+    return;
+  }
+
+  refs.nextButton.disabled = true;
+  refs.choiceList.replaceChildren();
+  onDialogComplete = () => {
+    refs.nextButton.textContent = content.ui.nextButton;
+    refs.nextButton.disabled = false;
+  };
+  renderDialog(replacePlaceholders(intro.afterNameDialogue, requireState()));
+}
+
+function renderDayIntroNameInput(intro: DayIntroContent): void {
+  refs.choiceList.replaceChildren();
+  const input = document.createElement("input");
+  input.className = "text-input";
+  input.id = "player-name-input";
+  input.type = "text";
+  input.maxLength = MAX_NICKNAME_LENGTH;
+  input.setAttribute("autocomplete", "nickname");
+  input.placeholder = intro.namePrompt.placeholder;
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      refs.nextButton.click();
+    }
+  });
+
+  const errorP = document.createElement("p");
+  errorP.id = "name-error";
+  errorP.className = "leaderboard-note";
+  errorP.setAttribute("aria-live", "polite");
+  refs.choiceList.append(input, errorP);
+  input.focus();
+}
+
+function handleDayIntroNext(): void {
+  if (dayIntroPhase === "name-entry") {
+    const nameInput = document.getElementById("player-name-input") as HTMLInputElement | null;
+    const nameError = document.getElementById("name-error") as HTMLElement | null;
+    if (!nameInput) return;
+
+    const result = sanitizeNickname(nameInput.value);
+    if (!result.ok) {
+      if (nameError) {
+        const errorMap: Record<string, string> = {
+          empty: content.ui.nameErrorEmpty,
+          tooLong: fmt(content.ui.nameErrorTooLong, { maxLength: MAX_NICKNAME_LENGTH }),
+          profane: content.ui.nameErrorProfane
+        };
+        nameError.textContent = result.errorCode ? (errorMap[result.errorCode] ?? "") : "";
+      }
+      return;
+    }
+
+    state = createInitialState(result.value);
+    latestAnswer = null;
+    isNameEntryMode = false;
+    dayIntroPhase = "after-name";
+    render();
+    return;
+  }
+
+  if (dayIntroPhase === "after-name") {
+    dayIntroCompleted = true;
+    if (state) saveGameState(state);
+    render();
   }
 }
 
@@ -645,6 +776,18 @@ function getSelectedOptionId(stage: StageContent): string | null {
   }
 
   return state.selectedAnswers[stage.id] ?? null;
+}
+
+function getDayOneIntro(): DayIntroContent | undefined {
+  return content.days.find((day) => day.id === "day1")?.intro;
+}
+
+function requireState(): GameState {
+  if (!state) {
+    throw new Error("D1-0 名稱輸入完成前缺少遊戲狀態。");
+  }
+
+  return state;
 }
 
 function fmt(template: string, vars: Record<string, string | number>): string {
