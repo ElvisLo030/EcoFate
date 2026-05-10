@@ -3,7 +3,7 @@ interface Props { choiceAreaLabel: string; }
 const { choiceAreaLabel } = Astro.props;
 ---
 
-<section class="choice-area" aria-label={choiceAreaLabel}>
+<section class="choice-area" id="choice-area" aria-label={choiceAreaLabel} hidden>
   <div class="choices" id="choice-list"></div>
   <section class="feedback-box" id="feedback-box" hidden aria-live="polite">
     <p class="feedback-title" id="feedback-title"></p>

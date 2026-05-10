@@ -23,6 +23,7 @@ const refs = {
   dialogBox: getElement<HTMLElement>("dialog-box"),
   dialogText: getElement<HTMLElement>("dialog-text"),
   dialogContinue: getElement<HTMLElement>("dialog-continue"),
+  choiceArea: getElement<HTMLElement>("choice-area"),
   choiceList: getElement<HTMLElement>("choice-list"),
   feedbackBox: getElement<HTMLElement>("feedback-box"),
   feedbackTitle: getElement<HTMLElement>("feedback-title"),
@@ -39,6 +40,11 @@ const refs = {
   leaderboardStatus: getElement<HTMLElement>("leaderboard-status"),
   leaderboardList: getElement<HTMLOListElement>("leaderboard-list")
 };
+
+// 監聽 choiceList 子元素變化，有內容時顯示整個 choice-area，否則隱藏
+new MutationObserver(() => {
+  refs.choiceArea.hidden = refs.choiceList.children.length === 0;
+}).observe(refs.choiceList, { childList: true });
 
 let state = loadGameState();
 if (state && ("day3" in state.dayScores || state.currentDayIndex >= content.days.length)) {
