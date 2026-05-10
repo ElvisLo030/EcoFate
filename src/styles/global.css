@@ -518,7 +518,8 @@ button:disabled {
   position: relative;
   display: grid;
   place-items: end center;
-  min-height: 120px;
+  height: 100%;
+  min-height: 180px;
   padding: 8px 8px 0;
   background:
     linear-gradient(rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.08)),
