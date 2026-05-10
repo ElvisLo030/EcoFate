@@ -91,6 +91,20 @@ function fmtDay(template: string, order: number): string {
     <div class="device-overlay desktop-overlay" role="alert">
       <p class="device-overlay__msg">{content.ui.desktopOverlayText}</p>
     </div>
+    <div id="day-transition-overlay" class="day-transition-overlay" hidden aria-hidden="true">
+      <div class="day-transition-window">
+        <div class="day-transition-titlebar">
+          <div class="day-transition-dots" aria-hidden="true">
+            <span class="day-transition-dot"></span>
+            <span class="day-transition-dot"></span>
+            <span class="day-transition-dot"></span>
+          </div>
+        </div>
+        <div class="day-transition-body">
+          <p class="day-transition-label" id="day-transition-label"></p>
+        </div>
+      </div>
+    </div>
     <main class="app-shell">
       <div class="game-window" data-view-transition>
         <header class="title-bar">

@@ -478,7 +478,7 @@ function handlePrologueChoice(choiceId: string): void {
   refs.nextButton.disabled = false;
 }
 
-function handlePrologueNext(): void {
+async function handlePrologueNext(): Promise<void> {
   const scene = content.prologue!.scenes[0];
 
   if (prologuePhase === "pre-choice" && prologuePendingChoiceId) {
@@ -509,6 +509,8 @@ function handlePrologueNext(): void {
 
   if (prologuePhase === "ending") {
     prologueCompleted = true;
+    refs.nextButton.disabled = true;
+    await showDayTransitionOverlay(1);
     render();
   }
 }
@@ -703,7 +705,36 @@ function renderDayOutro(): void {
   animate(refs.characterPortrait, { transform: ["translateY(8px)", "translateY(0)"], opacity: [0.78, 1] }, { duration: 0.28 });
 }
 
-function completeActiveDayOutro(): void {
+async function showDayTransitionOverlay(dayOrder: number): Promise<void> {
+  const overlay = document.getElementById("day-transition-overlay");
+  const windowEl = overlay?.querySelector<HTMLElement>(".day-transition-window");
+  const label = document.getElementById("day-transition-label");
+  if (!overlay || !windowEl || !label) return;
+
+  label.textContent = fmt(content.ui.dayTransitionLabel, { dayOrder });
+  overlay.hidden = false;
+
+  // 黑幕淡入 + 像素視窗彈出（同步執行）
+  await Promise.all([
+    gsap.to(overlay, { opacity: 1, duration: 0.35, ease: "power2.inOut" }),
+    gsap.to(windowEl, { opacity: 1, scale: 1, duration: 0.45, ease: "back.out(1.5)" }),
+  ]);
+  // 文字淡入
+  await gsap.to(label, { opacity: 1, duration: 0.3, ease: "power2.out" });
+  // 停留
+  await new Promise<void>((res) => setTimeout(res, 1200));
+  // 視窗縮小淡出
+  await gsap.to(windowEl, { opacity: 0, scale: 0.85, duration: 0.3, ease: "power2.in" });
+  // 黑幕淡出
+  await gsap.to(overlay, { opacity: 0, duration: 0.4, ease: "power2.inOut" });
+
+  overlay.hidden = true;
+  gsap.set(overlay, { opacity: 0 });
+  gsap.set(windowEl, { opacity: 0, scale: 0.7 });
+  gsap.set(label, { opacity: 0 });
+}
+
+async function completeActiveDayOutro(): Promise<void> {
   if (!state || !activeDayOutroId) {
     return;
   }
@@ -732,8 +763,12 @@ function completeActiveDayOutro(): void {
     return;
   }
 
+  // 非最後一天：先播放天數切換動畫，再推進遊戲
+  const nextDayOrder = content.days[state.currentDayIndex + 1].order;
   activeDayOutroId = null;
   latestAnswer = null;
+  refs.nextButton.disabled = true;
+  await showDayTransitionOverlay(nextDayOrder);
   advanceStage(content, state);
   saveGameState(state);
   render();
