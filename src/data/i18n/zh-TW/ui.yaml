@@ -1,0 +1,68 @@
+# ==============================
+# 遊戲 UI 文字設定
+# 所有介面按鈕與標籤文字統一在此管理
+# ==============================
+
+# 按鈕文字
+nextButton: 下一步
+finishButton: 查看成果
+submitScoreButton: 送出排行榜
+continueButton: 下一步
+enterGameButton: 進入遊戲
+startButton: 開始 Day 1
+
+# 標籤文字
+scoreLabel: 環保積分
+correctLabel: 最佳永續行為
+wrongLabel: 這次沒有得分
+completedLabel: 完成
+prologueLabel: D0
+
+# 格式化模板
+dayLabelFormat: "Day {dayOrder}"
+dayTransitionLabel: "Day {dayOrder}"
+portraitAltFormat: "{displayName} "
+systemToastFormat: "系統：「{message}」"
+completionDialog: "{endingTitle}，{playerName}。你的環保積分是 {totalScore} 分。"
+endingTitleFormat: "{sectionTitle}｜{endingTitle}"
+
+# 玩家資訊
+playerStatLabel: 玩家
+defaultPlayerName: 未知的引導者
+namePromptTitle: 文本文本文本
+namePromptBody: 文本文本文本
+namePlaceholder: 文本文本文本
+
+# 錯誤訊息
+nameErrorEmpty: 請輸入玩家名稱。
+nameErrorTooLong: "玩家名稱最多 {maxLength} 個字。"
+nameErrorProfane: 玩家名稱含有不適合公開排行榜的文字。
+
+# 進度條
+progressBarLabel: 環保積分進度
+
+# 設定面板
+settingsTitle: "⚙ 設定"
+settingsRestartButton: "↺ 重新開始"
+settingsHelpButton: "？ 查看引言"
+settingsRestartConfirm: 確定要從頭開始遊戲嗎？目前進度將會清除。
+settingsCopyrightText: All rights reserved.
+
+# 排行榜
+submitScoreLoading: 送出中...
+submitScoreSuccess: 排行榜已送出。
+submitScoreError: 排行榜送出失敗。
+leaderboardUnavailable: 尚未設定 Firebase 環境變數，排行榜會在部署設定完成後啟用。
+
+# 對話框
+dialogContinueText: "▼ 點擊對話框繼續"
+
+# 無障礙標籤
+closeButtonLabel: 關閉
+settingsButtonLabel: 設定
+statusBarLabel: 遊戲狀態
+choiceAreaLabel: 選擇區
+
+# 裝置提示
+landscapeOverlayText: 請將手機轉為直向遊玩
+desktopOverlayText: 請使用手機遊玩此遊戲

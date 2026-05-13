@@ -1,27 +1,50 @@
 ---
 interface Props {
   resultTitle: string;
-  dayLabels: [string, string];
+  totalMax: number;
+  spMax: number;
   submitButtonText: string;
 }
-const { resultTitle, dayLabels, submitButtonText } = Astro.props;
+const { resultTitle, totalMax, spMax, submitButtonText } = Astro.props;
 ---
 
 <section class="result-panel" id="result-panel" hidden aria-labelledby="result-title">
-  <h2 id="result-title">{resultTitle}</h2>
-  <p id="result-summary"></p>
-  <div class="result-grid">
+  <div class="report-header">
+    <span class="report-kicker">RESULT REPORT</span>
+    <h2 id="result-title">{resultTitle}</h2>
+    <p id="result-summary"></p>
+  </div>
+  <div class="report-identity">
     <div class="stat-box">
-      <span class="stat-label">{dayLabels[0]}</span>
-      <span class="stat-value" id="result-day1">0 / 100</span>
+      <span class="stat-label">暱稱</span>
+      <span class="stat-value" id="result-player-name">未知的引導者</span>
     </div>
     <div class="stat-box">
-      <span class="stat-label">{dayLabels[1]}</span>
-      <span class="stat-value" id="result-day2">0 / 100</span>
+      <span class="stat-label">通關耗時</span>
+      <span class="stat-value" id="result-elapsed-time">00:00</span>
+    </div>
+    <div class="stat-box">
+      <span class="stat-label">結局</span>
+      <span class="stat-value" id="result-ending-name">Ending</span>
     </div>
   </div>
-  <form class="leaderboard-form" id="leaderboard-form">
-    <button class="pixel-button" type="submit" id="submit-score-button">{submitButtonText}</button>
+  <div class="result-grid">
+    <div class="stat-box">
+      <span class="stat-label">主線積分</span>
+      <span class="stat-value" id="result-total">0 / {totalMax}</span>
+    </div>
+    <div class="stat-box">
+      <span class="stat-label">隱藏加分</span>
+      <span class="stat-value" id="result-sp">0 / {spMax}</span>
+    </div>
+  </div>
+  <section class="group-stats" aria-label="分組統計">
+    <h3>分組統計</h3>
+    <div class="group-stat-list" id="result-group-stats"></div>
+  </section>
+  <form class="leaderboard-form leaderboard-form--reserved" id="leaderboard-form">
+    <span class="report-kicker">排行榜預留</span>
+    <button class="pixel-button" type="submit" id="submit-score-button" disabled>{submitButtonText}</button>
     <p class="leaderboard-note" id="leaderboard-status"></p>
   </form>
   <ol class="leaderboard-list" id="leaderboard-list"></ol>

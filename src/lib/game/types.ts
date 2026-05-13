@@ -1,7 +1,5 @@
-export type DayId = "day1" | "day2";
-
-export type BranchId = "ivy" | "shino";
-export type HiddenRouteId = "h2";
+export type DayId = "day1" | "day2" | "day3" | "day4" | "day5";
+export type SpRouteId = "sp1" | "sp2";
 
 export type Operator = "eq" | "gt" | "gte" | "lt";
 
@@ -25,6 +23,7 @@ export interface PrologueScene {
 }
 
 export interface PrologueContent {
+  routeLabel: string;
   title: string;
   background: string;
   scenes: PrologueScene[];
@@ -37,6 +36,7 @@ export interface NamePromptContent {
 
 export interface StorySceneContent {
   id: string;
+  routeLabel: string;
   title: string;
   background: string;
   speaker?: string;
@@ -45,6 +45,7 @@ export interface StorySceneContent {
 
 export interface NameDayIntroContent {
   id: string;
+  routeLabel: string;
   title: string;
   background: string;
   speaker?: string;
@@ -57,6 +58,7 @@ export type DayIntroContent = NameDayIntroContent | StorySceneContent;
 
 export interface DayOutroContent {
   id: string;
+  routeLabel: string;
   title: string;
   background: string;
   speaker?: string;
@@ -78,12 +80,13 @@ export type DayOutroBranchContent =
     };
 
 export interface RouteRulesContent {
-  specialRoutes?: SpecialRouteContent[];
+  spRoutes?: SpUnlockRuleContent[];
   endings: EndingRouteRuleContent[];
 }
 
-export interface SpecialRouteContent {
-  id: string;
+// SP 路線解鎖規則依 rule.md：D2 後判斷 SP1、D4 後判斷 SP2。
+export interface SpUnlockRuleContent {
+  spId: SpRouteId;
   unlockAfterDay: DayId;
   condition: BranchCondition;
   nextDay: DayId;
@@ -91,11 +94,22 @@ export interface SpecialRouteContent {
 
 export interface EndingRouteRuleContent {
   id: string;
-  condition: BranchCondition;
+  default?: boolean;
+  // 複合 AND 條件（全部成立才觸發）
+  conditions: BranchCondition[];
 }
 
 export interface EndingResultContent {
+  routeLabel: string;
   title: string;
+  dialogue: string;
+  summary: string;
+}
+
+export interface EpilogueContent {
+  routeLabel: string;
+  title: string;
+  dialogue: string;
   summary: string;
 }
 
@@ -111,15 +125,16 @@ export interface GameContent {
     wrong: number;
     dayMax: number;
     totalMax: number;
+    spMax: number;
   };
   ui: Record<string, string>;
   characters: Record<string, CharacterContent>;
   prologue?: PrologueContent;
   routeRules?: RouteRulesContent;
   days: DayContent[];
-  hiddenRoutes?: HiddenRouteContent[];
-  hiddenBranches: HiddenBranchContent[];
+  spRoutes?: SpRouteContent[];
   toBeContinued?: StorySceneContent;
+  epilogue?: EpilogueContent;
   ending: {
     title: string;
     results: Record<string, EndingResultContent>;
@@ -145,6 +160,7 @@ export interface DayContent {
 
 export interface StageContent {
   id: string;
+  routeLabel: string;
   order: number;
   title: string;
   background: string;
@@ -158,10 +174,6 @@ export interface StageContent {
     correct: string;
     wrong: string;
   };
-  foreshadow?: {
-    branchId: BranchId;
-    text: string;
-  };
 }
 
 export interface ChoiceContent {
@@ -169,26 +181,19 @@ export interface ChoiceContent {
   text: string;
 }
 
-export interface HiddenBranchContent {
-  id: BranchId;
-  displayName: string;
-  unlockAfterDay: DayId;
-  portrait: string;
-  conditions: BranchCondition[];
-  messages: string[];
-}
-
-export interface HiddenRouteContent {
-  id: HiddenRouteId;
+// SP 路線（SP1、SP2 隱藏劇情，分數獨立計算）
+export interface SpRouteContent {
+  id: SpRouteId;
   title: string;
   displayName: string;
   heroine: string;
   unlockAfterDay: DayId;
   unlockCondition: BranchCondition;
-  unlockScene: StorySceneContent;
-  intro: StorySceneContent;
+  nextDay: DayId;
+  unlockScene?: StorySceneContent;
+  intro?: StorySceneContent;
   stages: StageContent[];
-  outro: StorySceneContent;
+  outro?: StorySceneContent;
 }
 
 export type BranchCondition =
@@ -203,6 +208,12 @@ export type BranchCondition =
       dayIds: DayId[];
       operator: Operator;
       value: number;
+    }
+  | {
+      metric: "spScoreSum";
+      spIds: SpRouteId[];
+      operator: Operator;
+      value: number;
     };
 
 export interface GameState {
@@ -210,20 +221,23 @@ export interface GameState {
   currentDayIndex: number;
   currentStageIndex: number;
   dayScores: Record<DayId, number>;
-  branchScores: Record<HiddenRouteId, number>;
+  spScores: Record<SpRouteId, number>;
   totalScore: number;
   answeredStageIds: string[];
   selectedAnswers: Record<string, string>;
-  unlockedBranches: BranchId[];
-  pendingHiddenRouteId: HiddenRouteId | null;
-  currentHiddenRouteId: HiddenRouteId | null;
-  currentHiddenStageIndex: number;
+  pendingSpRouteId: SpRouteId | null;
+  currentSpRouteId: SpRouteId | null;
+  currentSpStageIndex: number;
   completedIntros: DayId[];
   completedOutros: DayId[];
-  completedHiddenRouteIntros: HiddenRouteId[];
-  completedHiddenRoutes: HiddenRouteId[];
+  completedSpRouteIntros: SpRouteId[];
+  completedSpRoutes: SpRouteId[];
   toBeContinued: boolean;
   completed: boolean;
+  completedEnding: boolean;
+  completedEpilogue: boolean;
+  startedAt: number;
+  completedAt: number | null;
   savedAt: number;
 }
 
@@ -232,5 +246,5 @@ export interface AnswerResult {
   earnedPoints: number;
   dayCompleted: boolean;
   gameCompleted: boolean;
-  unlockedMessages: string[];
+  unlockedSpRouteId: SpRouteId | null;
 }

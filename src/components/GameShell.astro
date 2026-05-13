@@ -140,15 +140,13 @@ function fmtDay(template: string, order: number): string {
 
         <div class="main-grid">
           <SceneStage />
+          <DialogBox />
           <aside class="side-panel">
-            <DialogBox />
             <ChoiceList choiceAreaLabel={content.ui.choiceAreaLabel} />
             <Leaderboard
               resultTitle={content.ending.title}
-              dayLabels={[
-                fmtDay(content.ui.dayLabelFormat, 1),
-                fmtDay(content.ui.dayLabelFormat, 2)
-              ]}
+              totalMax={content.points.totalMax}
+              spMax={content.points.spMax}
               submitButtonText={content.ui.submitScoreButton}
             />
           </aside>

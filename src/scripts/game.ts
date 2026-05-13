@@ -1,13 +1,11 @@
 import { animate } from "@motionone/dom";
 import gsap from "gsap";
-import { advanceStage, answerStage, createInitialState, getCurrentDay, getCurrentStage, replacePlaceholders } from "@/lib/game/engine";
+import { advanceStage, answerSpStage, answerStage, createInitialState, evaluateCondition, evaluateEnding, getCurrentDay, getCurrentStage, replacePlaceholders } from "@/lib/game/engine";
 import { clearGameState, loadGameState, resetGameState, saveGameState } from "@/lib/game/storage";
-import type { AnswerResult, BranchCondition, DayContent, DayId, DayIntroContent, DayOutroBranchContent, EndingResultContent, GameContent, GameState, HiddenRouteContent, HiddenRouteId, NameDayIntroContent, PrologueScene, StageContent, StorySceneContent } from "@/lib/game/types";
-import { createLeaderboardService } from "@/lib/leaderboard/firebase";
+import type { AnswerResult, BranchCondition, DayContent, DayId, DayIntroContent, DayOutroBranchContent, EndingResultContent, GameContent, GameState, NameDayIntroContent, PrologueScene, SpRouteContent, SpRouteId, StageContent, StorySceneContent } from "@/lib/game/types";
 import { sanitizeNickname, MAX_NICKNAME_LENGTH } from "@/lib/security/profanity";
 
 const content = readContent();
-const leaderboard = createLeaderboardService();
 
 const refs = {
   playerNameLabel: getElement<HTMLElement>("player-name-label"),
@@ -33,8 +31,12 @@ const refs = {
   nextButton: getElement<HTMLButtonElement>("next-stage-button"),
   resultPanel: getElement<HTMLElement>("result-panel"),
   resultSummary: getElement<HTMLElement>("result-summary"),
-  resultDay1: getElement<HTMLElement>("result-day1"),
-  resultDay2: getElement<HTMLElement>("result-day2"),
+  resultPlayerName: getElement<HTMLElement>("result-player-name"),
+  resultElapsedTime: getElement<HTMLElement>("result-elapsed-time"),
+  resultEndingName: getElement<HTMLElement>("result-ending-name"),
+  resultTotal: getElement<HTMLElement>("result-total"),
+  resultSp: getElement<HTMLElement>("result-sp"),
+  resultGroupStats: getElement<HTMLElement>("result-group-stats"),
   leaderboardForm: getElement<HTMLFormElement>("leaderboard-form"),
   submitScoreButton: getElement<HTMLButtonElement>("submit-score-button"),
   leaderboardStatus: getElement<HTMLElement>("leaderboard-status"),
@@ -47,56 +49,71 @@ new MutationObserver(() => {
 }).observe(refs.choiceList, { childList: true });
 
 let state = loadGameState();
-if (state && ("day3" in state.dayScores || state.currentDayIndex >= content.days.length)) {
+// 存檔與目前天數結構不符時清除
+if (state && state.currentDayIndex >= content.days.length) {
   clearGameState();
   state = null;
-}
-if (state && !Array.isArray(state.completedOutros)) {
-  state.completedOutros = [];
-  saveGameState(state);
 }
 if (state) {
   let migrated = false;
   const storedState = state as Partial<GameState> & Record<string, unknown>;
-  if (!state.branchScores) {
-    state.branchScores = { h2: 0 };
-    migrated = true;
-  } else if (typeof state.branchScores.h2 !== "number") {
-    state.branchScores.h2 = 0;
+
+  // 補全缺少的新欄位
+  if (!state.spScores) {
+    state.spScores = { sp1: 0, sp2: 0 };
     migrated = true;
   }
   if (!Array.isArray(state.completedIntros)) {
     state.completedIntros = [];
     migrated = true;
   }
-  if (!Array.isArray(state.completedHiddenRouteIntros)) {
-    state.completedHiddenRouteIntros = [];
+  if (!Array.isArray(state.completedOutros)) {
+    state.completedOutros = [];
     migrated = true;
   }
-  if (!Array.isArray(state.completedHiddenRoutes)) {
-    state.completedHiddenRoutes = [];
+  if (!Array.isArray(state.completedSpRouteIntros)) {
+    state.completedSpRouteIntros = [];
     migrated = true;
   }
-  if (!("pendingHiddenRouteId" in storedState)) {
-    state.pendingHiddenRouteId = null;
+  if (!Array.isArray(state.completedSpRoutes)) {
+    state.completedSpRoutes = [];
     migrated = true;
   }
-  if (!("currentHiddenRouteId" in storedState)) {
-    state.currentHiddenRouteId = null;
+  if (!("pendingSpRouteId" in storedState)) {
+    state.pendingSpRouteId = null;
     migrated = true;
   }
-  if (!("currentHiddenStageIndex" in storedState)) {
-    state.currentHiddenStageIndex = 0;
+  if (!("currentSpRouteId" in storedState)) {
+    state.currentSpRouteId = null;
+    migrated = true;
+  }
+  if (!("currentSpStageIndex" in storedState)) {
+    state.currentSpStageIndex = 0;
     migrated = true;
   }
   if (!("toBeContinued" in storedState)) {
     state.toBeContinued = false;
     migrated = true;
   }
+  if (!("completedEnding" in storedState)) {
+    state.completedEnding = false;
+    migrated = true;
+  }
+  if (!("completedEpilogue" in storedState)) {
+    state.completedEpilogue = false;
+    migrated = true;
+  }
+  if (typeof state.startedAt !== "number") {
+    state.startedAt = state.savedAt || Date.now();
+    migrated = true;
+  }
+  if (!("completedAt" in storedState)) {
+    state.completedAt = state.completed ? state.savedAt : null;
+    migrated = true;
+  }
   if (migrated) saveGameState(state);
 }
 let latestAnswer: AnswerResult | null = null;
-let isSubmittingScore = false;
 
 // 對話分段狀態
 let pendingSegments: string[] = [];
@@ -111,7 +128,7 @@ let onDialogComplete: (() => void) | null = null;
 
 // 序章狀態
 type ProloguePhase = "pre-choice" | "branch" | "ending";
-let prologueCompleted = false;
+let prologueCompleted = Boolean(state);
 let prologuePhase: ProloguePhase = "pre-choice";
 let prologuePendingChoiceId: string | null = null;
 
@@ -159,6 +176,7 @@ settingsRestart?.addEventListener("click", () => {
   dayIntroPhase = "before-name";
   activeDayOutroId = null;
   activeDayOpeningId = null;
+  refs.resultPanel.hidden = true;
   render();
 });
 
@@ -206,17 +224,22 @@ refs.nextButton.addEventListener("click", () => {
 
   if (!state) return;
 
+  if (state.completed) {
+    handleCompletedNext();
+    return;
+  }
+
   if (state.toBeContinued) {
     return;
   }
 
-  if (state.pendingHiddenRouteId) {
-    startPendingHiddenRoute();
+  if (state.pendingSpRouteId) {
+    startPendingSpRoute();
     return;
   }
 
-  if (state.currentHiddenRouteId) {
-    handleHiddenRouteNext();
+  if (state.currentSpRouteId) {
+    handleSpRouteNext();
     return;
   }
 
@@ -253,7 +276,7 @@ refs.nextButton.addEventListener("click", () => {
     renderStageResponse(stage, confirmedId, () => {
       refs.nextButton.disabled = false;
     });
-    renderToasts(stage, latestAnswer.unlockedMessages);
+    renderToasts([]);
     return;
   }
 
@@ -298,28 +321,8 @@ refs.dialogBox.addEventListener("click", () => {
 
 refs.leaderboardForm.addEventListener("submit", async (event) => {
   event.preventDefault();
-
-  if (!state || !state.completed || isSubmittingScore) {
-    return;
-  }
-
-  isSubmittingScore = true;
+  refs.leaderboardStatus.textContent = "排行榜功能已保留，尚未開放送出。";
   refs.submitScoreButton.disabled = true;
-  refs.leaderboardStatus.textContent = content.ui.submitScoreLoading;
-
-  try {
-    await leaderboard.submitScore({
-      playerName: state.playerName,
-      score: state.totalScore
-    });
-    refs.leaderboardStatus.textContent = content.ui.submitScoreSuccess;
-    await renderLeaderboard();
-  } catch (error) {
-    refs.leaderboardStatus.textContent = error instanceof Error ? error.message : content.ui.submitScoreError;
-  } finally {
-    isSubmittingScore = false;
-    refs.submitScoreButton.disabled = !leaderboard.enabled;
-  }
 });
 
 render();
@@ -355,13 +358,13 @@ function render(): void {
     return;
   }
 
-  if (state.pendingHiddenRouteId) {
-    renderHiddenUnlock();
+  if (state.pendingSpRouteId) {
+    renderSpUnlock();
     return;
   }
 
-  if (state.currentHiddenRouteId) {
-    renderHiddenRoute();
+  if (state.currentSpRouteId) {
+    renderSpRoute();
     return;
   }
 
@@ -386,8 +389,8 @@ function render(): void {
   const selectedOptionId = getSelectedOptionId(stage);
   const isFinalStage = state.currentDayIndex === content.days.length - 1 && state.currentStageIndex === day.stages.length - 1;
 
-  refs.routeLabel.textContent = fmt(content.ui.dayLabelFormat, { dayOrder: day.order });
-  refs.stageTitle.textContent = `${stage.id} ${stage.title}`;
+  refs.routeLabel.textContent = stage.routeLabel;
+  refs.stageTitle.textContent = stage.title;
   refs.sceneVisual.dataset.bg = stage.background;
   refs.characterPortrait.src = character.portrait;
   refs.characterPortrait.alt = fmt(content.ui.portraitAltFormat, { displayName: character.displayName });
@@ -439,7 +442,7 @@ function renderPrologue(): void {
   refs.nextButton.hidden = false;
   refs.nextButton.textContent = content.ui.continueButton;
   refs.playerNameLabel.textContent = content.ui.defaultPlayerName;
-  refs.routeLabel.textContent = content.ui.prologueLabel;
+  refs.routeLabel.textContent = prologue.routeLabel;
   refs.stageTitle.textContent = prologue.title;
   refs.sceneVisual.dataset.bg = prologue.background;
   refs.characterPortrait.src = character.portrait;
@@ -530,8 +533,8 @@ function renderDayIntro(): void {
   refs.nextButton.hidden = false;
   refs.nextButton.textContent = content.ui.continueButton;
   refs.playerNameLabel.textContent = state?.playerName ?? content.ui.defaultPlayerName;
-  refs.routeLabel.textContent = fmt(content.ui.dayLabelFormat, { dayOrder: 1 });
-  refs.stageTitle.textContent = `${intro.id} ${intro.title}`;
+  refs.routeLabel.textContent = intro.routeLabel;
+  refs.stageTitle.textContent = intro.title;
   refs.sceneVisual.dataset.bg = intro.background;
   refs.characterPortrait.src = character.portrait;
   refs.characterPortrait.alt = fmt(content.ui.portraitAltFormat, { displayName: character.displayName });
@@ -641,7 +644,7 @@ function renderDayOpening(): void {
   }
 
   renderStoryScene(intro, {
-    routeLabel: fmt(content.ui.dayLabelFormat, { dayOrder: day.order }),
+    routeLabel: intro.routeLabel,
     onComplete: () => {
       refs.nextButton.disabled = false;
     }
@@ -685,8 +688,8 @@ function renderDayOutro(): void {
   refs.nextButton.textContent = content.ui.nextButton;
   refs.nextButton.disabled = true;
   refs.playerNameLabel.textContent = state.playerName;
-  refs.routeLabel.textContent = fmt(content.ui.dayLabelFormat, { dayOrder: day.order });
-  refs.stageTitle.textContent = `${outro.id} ${outro.title}`;
+  refs.routeLabel.textContent = outro.routeLabel;
+  refs.stageTitle.textContent = outro.title;
   refs.sceneVisual.dataset.bg = outro.background;
   refs.characterPortrait.src = character.portrait;
   refs.characterPortrait.alt = fmt(content.ui.portraitAltFormat, { displayName: character.displayName });
@@ -743,9 +746,9 @@ async function completeActiveDayOutro(): Promise<void> {
     state.completedOutros.push(activeDayOutroId);
   }
 
-  const hiddenRoute = getUnlockedRouteAfterDay(activeDayOutroId, state);
-  if (hiddenRoute && !state.completedHiddenRoutes.includes(hiddenRoute.id)) {
-    state.pendingHiddenRouteId = hiddenRoute.id;
+  const spRoute = getUnlockedSpRouteAfterDay(activeDayOutroId, state);
+  if (spRoute && !state.completedSpRoutes.includes(spRoute.id)) {
+    state.pendingSpRouteId = spRoute.id;
     activeDayOutroId = null;
     latestAnswer = null;
     saveGameState(state);
@@ -755,7 +758,9 @@ async function completeActiveDayOutro(): Promise<void> {
 
   const isLastDay = state.currentDayIndex === content.days.length - 1;
   if (isLastDay) {
-    state.toBeContinued = true;
+    // 最後一天完成 → 判定遊戲結束，不顯示待續
+    state.completed = true;
+    state.completedAt = state.completedAt ?? Date.now();
     activeDayOutroId = null;
     latestAnswer = null;
     saveGameState(state);
@@ -817,44 +822,49 @@ function hasDayOutroCondition(
   return "condition" in branch;
 }
 
-function renderHiddenUnlock(): void {
-  if (!state?.pendingHiddenRouteId) {
+function renderSpUnlock(): void {
+  if (!state?.pendingSpRouteId) {
     return;
   }
 
-  const route = getHiddenRoute(state.pendingHiddenRouteId);
-  renderStoryScene(route.unlockScene, {
-    routeLabel: route.displayName,
-    sceneEffect: "is-hidden-unlock",
-    onComplete: () => {
-      refs.nextButton.disabled = false;
-    }
-  });
+  const route = getSpRoute(state.pendingSpRouteId);
+  if (route.unlockScene) {
+    renderStoryScene(route.unlockScene, {
+      routeLabel: route.unlockScene.routeLabel,
+      sceneEffect: "is-hidden-unlock",
+      onComplete: () => {
+        refs.nextButton.disabled = false;
+      }
+    });
+  } else {
+    // 無解鎖場景 → 直接進入
+    startPendingSpRoute();
+  }
 }
 
-function startPendingHiddenRoute(): void {
-  if (!state?.pendingHiddenRouteId) {
+function startPendingSpRoute(): void {
+  if (!state?.pendingSpRouteId) {
     return;
   }
 
-  state.currentHiddenRouteId = state.pendingHiddenRouteId;
-  state.pendingHiddenRouteId = null;
-  state.currentHiddenStageIndex = 0;
+  state.currentSpRouteId = state.pendingSpRouteId;
+  state.pendingSpRouteId = null;
+  state.currentSpStageIndex = 0;
   saveGameState(state);
   render();
 }
 
-function renderHiddenRoute(): void {
-  if (!state?.currentHiddenRouteId) {
+function renderSpRoute(): void {
+  if (!state?.currentSpRouteId) {
     return;
   }
 
-  const route = getHiddenRoute(state.currentHiddenRouteId);
+  const route = getSpRoute(state.currentSpRouteId);
   refs.routeLabel.textContent = route.displayName;
 
-  if (!state.completedHiddenRouteIntros.includes(route.id)) {
+  if (route.intro && !state.completedSpRouteIntros.includes(route.id)) {
     renderStoryScene(route.intro, {
-      routeLabel: route.displayName,
+      routeLabel: route.intro.routeLabel,
       onComplete: () => {
         refs.nextButton.disabled = false;
       }
@@ -862,26 +872,30 @@ function renderHiddenRoute(): void {
     return;
   }
 
-  if (state.currentHiddenStageIndex >= route.stages.length) {
-    renderStoryScene(route.outro, {
-      routeLabel: route.displayName,
-      onComplete: () => {
-        refs.nextButton.textContent = content.ui.continueButton;
-        refs.nextButton.disabled = false;
-      }
-    });
+  if (state.currentSpStageIndex >= route.stages.length) {
+    if (route.outro) {
+      renderStoryScene(route.outro, {
+        routeLabel: route.outro.routeLabel,
+        onComplete: () => {
+          refs.nextButton.textContent = content.ui.continueButton;
+          refs.nextButton.disabled = false;
+        }
+      });
+    } else {
+      handleSpRouteComplete();
+    }
     return;
   }
 
-  renderHiddenStage(route);
+  renderSpStage(route);
 }
 
-function renderHiddenStage(route: HiddenRouteContent): void {
+function renderSpStage(route: SpRouteContent): void {
   if (!state) {
     return;
   }
 
-  const stage = route.stages[state.currentHiddenStageIndex];
+  const stage = route.stages[state.currentSpStageIndex];
   const character = (stage.speaker ? content.characters[stage.speaker] : undefined) ?? content.characters.system;
   const selectedOptionId = getSelectedOptionId(stage);
 
@@ -892,8 +906,8 @@ function renderHiddenStage(route: HiddenRouteContent): void {
   refs.nextButton.textContent = content.ui.nextButton;
   refs.nextButton.disabled = true;
   refs.playerNameLabel.textContent = state.playerName;
-  refs.routeLabel.textContent = route.displayName;
-  refs.stageTitle.textContent = `${stage.id} ${stage.title}`;
+  refs.routeLabel.textContent = stage.routeLabel;
+  refs.stageTitle.textContent = stage.title;
   refs.sceneVisual.classList.remove("is-hidden-unlock");
   refs.sceneVisual.dataset.bg = stage.background;
   refs.characterPortrait.src = character.portrait;
@@ -923,43 +937,35 @@ function renderHiddenStage(route: HiddenRouteContent): void {
   animate(refs.characterPortrait, { transform: ["translateY(8px)", "translateY(0)"], opacity: [0.78, 1] }, { duration: 0.28 });
 }
 
-function handleHiddenRouteNext(): void {
-  if (!state?.currentHiddenRouteId) {
+function handleSpRouteNext(): void {
+  if (!state?.currentSpRouteId) {
     return;
   }
 
-  const route = getHiddenRoute(state.currentHiddenRouteId);
+  const route = getSpRoute(state.currentSpRouteId);
 
-  if (!state.completedHiddenRouteIntros.includes(route.id)) {
-    state.completedHiddenRouteIntros.push(route.id);
+  if (route.intro && !state.completedSpRouteIntros.includes(route.id)) {
+    state.completedSpRouteIntros.push(route.id);
     saveGameState(state);
     render();
     return;
   }
 
-  if (state.currentHiddenStageIndex >= route.stages.length) {
-    if (!state.completedHiddenRoutes.includes(route.id)) {
-      state.completedHiddenRoutes.push(route.id);
-    }
-    state.currentHiddenRouteId = null;
-    state.currentHiddenStageIndex = 0;
-    state.toBeContinued = true;
-    saveGameState(state);
-    render();
+  if (state.currentSpStageIndex >= route.stages.length) {
+    handleSpRouteComplete();
     return;
   }
 
-  const stage = route.stages[state.currentHiddenStageIndex];
+  const stage = route.stages[state.currentSpStageIndex];
   const scoredOptionId = getSelectedOptionId(stage);
 
   if (pendingOptionId && !scoredOptionId) {
-    answerHiddenStage(route, stage, pendingOptionId);
+    answerSpStage(content, state, route.id, stage.id, pendingOptionId, stage.correctOptionId);
     saveGameState(state);
     const confirmedId = pendingOptionId;
     pendingOptionId = null;
     renderChoices(stage, confirmedId, null);
     refs.feedbackBox.hidden = true;
-    renderScore();
     refs.nextButton.disabled = true;
     renderStageResponse(stage, confirmedId, () => {
       refs.nextButton.disabled = false;
@@ -968,26 +974,22 @@ function handleHiddenRouteNext(): void {
   }
 
   if (!scoredOptionId) return;
-  state.currentHiddenStageIndex += 1;
+  state.currentSpStageIndex += 1;
   saveGameState(state);
   render();
 }
 
-function answerHiddenStage(route: HiddenRouteContent, stage: StageContent, optionId: string): void {
-  if (!state) {
-    return;
+function handleSpRouteComplete(): void {
+  if (!state?.currentSpRouteId) return;
+  if (!state.completedSpRoutes.includes(state.currentSpRouteId)) {
+    state.completedSpRoutes.push(state.currentSpRouteId);
   }
-
-  const isCorrect = optionId === stage.correctOptionId;
-  const earnedPoints = isCorrect ? content.points.correct : content.points.wrong;
-
-  if (!state.answeredStageIds.includes(stage.id)) {
-    state.branchScores[route.id] += earnedPoints;
-    state.answeredStageIds.push(stage.id);
-    state.selectedAnswers[stage.id] = optionId;
-  }
-
-  state.savedAt = Date.now();
+  state.currentSpRouteId = null;
+  state.currentSpStageIndex = 0;
+  // SP 路線結束後繼續推進到下一天
+  advanceStage(content, state);
+  saveGameState(state);
+  render();
 }
 
 function renderToBeContinued(): void {
@@ -997,6 +999,7 @@ function renderToBeContinued(): void {
 
   const scene = content.toBeContinued ?? {
     id: "to-be-continued",
+    routeLabel: "to-be-continued",
     title: "後續待開放",
     background: "club",
     speaker: "system",
@@ -1006,7 +1009,7 @@ function renderToBeContinued(): void {
   refs.resultPanel.hidden = true;
   refs.nextButton.hidden = true;
   renderStoryScene(scene, {
-    routeLabel: content.ui.completedLabel,
+    routeLabel: scene.routeLabel,
     hideNextButton: true,
     onComplete: () => {}
   });
@@ -1026,7 +1029,7 @@ function renderStoryScene(
   refs.nextButton.disabled = true;
   refs.playerNameLabel.textContent = state?.playerName ?? content.ui.defaultPlayerName;
   refs.routeLabel.textContent = options.routeLabel;
-  refs.stageTitle.textContent = `${scene.id} ${scene.title}`;
+  refs.stageTitle.textContent = scene.title;
   refs.sceneVisual.classList.remove("is-hidden-unlock");
   if (options.sceneEffect) {
     refs.sceneVisual.classList.add(options.sceneEffect);
@@ -1047,18 +1050,18 @@ function renderStoryScene(
   animate(refs.characterPortrait, { transform: ["translateY(8px)", "translateY(0)"], opacity: [0.72, 1] }, { duration: 0.3 });
 }
 
-function getUnlockedRouteAfterDay(dayId: DayId, targetState: GameState): HiddenRouteContent | undefined {
-  return content.hiddenRoutes?.find((route) =>
+function getUnlockedSpRouteAfterDay(dayId: DayId, targetState: GameState): SpRouteContent | undefined {
+  return content.spRoutes?.find((route) =>
     route.unlockAfterDay === dayId &&
-    !targetState.completedHiddenRoutes.includes(route.id) &&
+    !targetState.completedSpRoutes.includes(route.id) &&
     evaluateCondition(route.unlockCondition, targetState)
   );
 }
 
-function getHiddenRoute(routeId: HiddenRouteId): HiddenRouteContent {
-  const route = content.hiddenRoutes?.find((item) => item.id === routeId);
+function getSpRoute(spId: SpRouteId): SpRouteContent {
+  const route = content.spRoutes?.find((item) => item.id === spId);
   if (!route) {
-    throw new Error(`缺少隱藏支線資料：${routeId}`);
+    throw new Error(`缺少 SP 路線資料：${spId}`);
   }
   return route;
 }
@@ -1183,15 +1186,8 @@ function renderStageResponse(stage: StageContent, selectedOptionId: string, onCo
   renderDialog(replacePlaceholders(responseDialogue, state));
 }
 
-function renderToasts(stage: StageContent, unlockedMessages: string[]): void {
+function renderToasts(messages: string[]): void {
   refs.toastStack.replaceChildren();
-  const messages = [
-    ...unlockedMessages.map((message) => fmt(content.ui.systemToastFormat, { message }))
-  ];
-
-  if (stage.foreshadow) {
-    messages.unshift(stage.foreshadow.text);
-  }
 
   if (messages.length === 0) {
     refs.toastStack.hidden = true;
@@ -1233,54 +1229,165 @@ function renderCompleted(): void {
     return;
   }
 
+  const ending = getCurrentEnding();
+
+  if (!state.completedEnding) {
+    renderEndingScene(ending);
+    return;
+  }
+
+  if (content.epilogue && !state.completedEpilogue) {
+    renderEpilogueScene();
+    return;
+  }
+
+  renderResultReport(ending);
+}
+
+function handleCompletedNext(): void {
+  if (!state) return;
+
+  if (!state.completedEnding) {
+    state.completedEnding = true;
+    saveGameState(state);
+    render();
+    return;
+  }
+
+  if (content.epilogue && !state.completedEpilogue) {
+    state.completedEpilogue = true;
+    saveGameState(state);
+    render();
+  }
+}
+
+function renderEndingScene(ending: EndingResultContent): void {
+  const scene: StorySceneContent = {
+    id: ending.routeLabel,
+    routeLabel: ending.routeLabel,
+    title: ending.title,
+    background: "club",
+    speaker: "system",
+    dialogue: ending.dialogue,
+  };
+
+  renderStoryScene(scene, {
+    routeLabel: ending.routeLabel,
+    onComplete: () => {
+      refs.nextButton.textContent = content.epilogue ? "閱讀結語" : "查看成績單";
+      refs.nextButton.disabled = false;
+    }
+  });
+}
+
+function renderEpilogueScene(): void {
+  if (!content.epilogue) return;
+
+  const scene: StorySceneContent = {
+    id: content.epilogue.routeLabel,
+    routeLabel: content.epilogue.routeLabel,
+    title: content.epilogue.title,
+    background: "club",
+    speaker: "system",
+    dialogue: content.epilogue.dialogue,
+  };
+
+  renderStoryScene(scene, {
+    routeLabel: content.epilogue.routeLabel,
+    onComplete: () => {
+      refs.nextButton.textContent = "查看成績單";
+      refs.nextButton.disabled = false;
+    }
+  });
+}
+
+function renderResultReport(ending: EndingResultContent): void {
+  if (!state) {
+    return;
+  }
+
   const lastDay = content.days[content.days.length - 1];
   const lastStage = lastDay.stages[lastDay.stages.length - 1];
   const character = content.characters.system;
-  const ending = resolveEndingResult(state);
+  const spTotal = Object.values(state.spScores).reduce((s, v) => s + v, 0);
+  const completedAt = state.completedAt ?? Date.now();
 
   refs.resultPanel.hidden = false;
   refs.nextButton.hidden = true;
-  refs.routeLabel.textContent = content.ui.completedLabel;
-  refs.stageTitle.textContent = fmt(content.ui.endingTitleFormat, { sectionTitle: content.ending.title, endingTitle: ending.title });
+  refs.routeLabel.textContent = ending.routeLabel;
+  refs.stageTitle.textContent = ending.title;
   refs.sceneVisual.dataset.bg = lastStage.background;
   refs.characterPortrait.src = character.portrait;
   refs.characterPortrait.alt = fmt(content.ui.portraitAltFormat, { displayName: character.displayName });
   refs.speakerName.textContent = character.displayName;
   refs.speakerName.style.background = character.accent;
-  renderDialog(fmt(content.ui.completionDialog, { endingTitle: ending.title, playerName: state.playerName, totalScore: state.totalScore }));
+  refs.dialogBox.hidden = true;
+  refs.dialogText.textContent = "";
+  refs.dialogContinue.hidden = true;
   refs.choiceList.replaceChildren();
   refs.feedbackBox.hidden = true;
   refs.toastStack.hidden = true;
-  refs.resultSummary.textContent = replacePlaceholders(ending.summary, state);
-  refs.resultDay1.textContent = `${state.dayScores.day1} / ${content.points.dayMax}`;
-  refs.resultDay2.textContent = `${state.dayScores.day2} / ${content.points.dayMax}`;
+  refs.resultSummary.textContent = "永續回收命運機已完成本次紀錄封存。";
+  refs.resultPlayerName.textContent = state.playerName;
+  refs.resultElapsedTime.textContent = formatElapsedTime(Math.max(0, completedAt - state.startedAt));
+  refs.resultEndingName.textContent = ending.title;
+  refs.resultTotal.textContent = `${state.totalScore} / ${content.points.totalMax}`;
+  refs.resultSp.textContent = `${spTotal} / ${content.points.spMax}`;
+  renderGroupStats();
   refs.submitScoreButton.textContent = content.ui.submitScoreButton;
-  refs.submitScoreButton.disabled = !leaderboard.enabled;
-  refs.leaderboardStatus.textContent = leaderboard.enabled ? "" : content.ui.leaderboardUnavailable;
-  void renderLeaderboard();
+  refs.submitScoreButton.disabled = true;
+  refs.leaderboardStatus.textContent = "排行榜功能已保留，尚未開放送出。";
+  refs.leaderboardList.replaceChildren();
 }
 
-async function renderLeaderboard(): Promise<void> {
-  refs.leaderboardList.replaceChildren();
+function getCurrentEnding(): EndingResultContent {
+  const endingId = state ? evaluateEnding(content, state) : "bad";
+  return content.ending.results[endingId] ?? Object.values(content.ending.results)[0];
+}
 
-  if (!leaderboard.enabled) {
-    return;
-  }
+function renderGroupStats(): void {
+  if (!state) return;
 
-  const entries = await leaderboard.fetchTopScores();
-  entries.forEach((entry, index) => {
-    const item = document.createElement("li");
-    const rank = document.createElement("span");
-    const name = document.createElement("strong");
-    const score = document.createElement("span");
+  refs.resultGroupStats.replaceChildren();
+  const rows = content.days.map((day) => ({
+    label: day.title,
+    value: state!.dayScores[day.id],
+    max: content.points.dayMax,
+  }));
+  rows.push(
+    { label: "SP1", value: state.spScores.sp1, max: content.points.spMax / 2 },
+    { label: "SP2", value: state.spScores.sp2, max: content.points.spMax / 2 },
+  );
 
-    rank.textContent = `#${index + 1}`;
-    name.textContent = entry.playerName;
-    score.textContent = `${entry.score}`;
-
-    item.append(rank, name, score);
-    refs.leaderboardList.append(item);
+  rows.forEach((row) => {
+    const item = document.createElement("div");
+    item.className = "group-stat-row";
+    const name = document.createElement("span");
+    name.className = "group-stat-name";
+    name.textContent = row.label;
+    const bar = document.createElement("span");
+    bar.className = "group-stat-bar";
+    const fill = document.createElement("span");
+    fill.className = "group-stat-fill";
+    fill.style.width = `${Math.min(100, (row.value / row.max) * 100)}%`;
+    const value = document.createElement("span");
+    value.className = "group-stat-value";
+    value.textContent = `${row.value} / ${row.max}`;
+    bar.append(fill);
+    item.append(name, bar, value);
+    refs.resultGroupStats.append(item);
   });
+}
+
+function formatElapsedTime(ms: number): string {
+  const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  if (hours > 0) {
+    return `${hours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+  }
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 }
 
 // 「。」後插入換行（排除緊接 \n 或段末）
@@ -1350,6 +1457,7 @@ function playNextSegment(): void {
 }
 
 function renderDialog(rawText: string): void {
+  refs.dialogBox.hidden = false;
   pendingSegments = rawText
     .split("</br>")
     .map((s) => s.trim())
@@ -1372,33 +1480,6 @@ function getDayOneIntro(): NameDayIntroContent | undefined {
   return intro && isNameDayIntro(intro) ? intro : undefined;
 }
 
-function resolveEndingResult(targetState: GameState): EndingResultContent {
-  const matchedRule = content.routeRules?.endings.find((endingRule) => evaluateCondition(endingRule.condition, targetState));
-  const result = matchedRule ? content.ending.results[matchedRule.id] : undefined;
-  const fallback = Object.values(content.ending.results)[0];
-  if (!result && !fallback) {
-    throw new Error("缺少結局內容資料。");
-  }
-
-  return result ?? fallback;
-}
-
-function evaluateCondition(condition: BranchCondition, targetState: GameState): boolean {
-  const actual = condition.metric === "dayScore"
-    ? targetState.dayScores[condition.dayId]
-    : condition.dayIds.reduce((sum, dayId) => sum + targetState.dayScores[dayId], 0);
-
-  switch (condition.operator) {
-    case "eq":
-      return actual === condition.value;
-    case "gt":
-      return actual > condition.value;
-    case "gte":
-      return actual >= condition.value;
-    case "lt":
-      return actual < condition.value;
-  }
-}
 
 function requireState(): GameState {
   if (!state) {

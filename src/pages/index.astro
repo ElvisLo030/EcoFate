@@ -1,10 +1,19 @@
 ---
 import GameShell from "@/components/GameShell.astro";
-import gameContent from "@/data/i18n/zh-TW/game.json";
+import { buildGameContent } from "@/lib/game/scriptLoader";
 import type { GameContent } from "@/lib/game/types";
 import "@/styles/global.css";
 
-const typedGameContent = gameContent as unknown as GameContent;
+// Vite 在建置期載入所有 .md 劇本原始文字
+const mdFiles = import.meta.glob(
+  "/src/data/i18n/zh-TW/script/**/*.md",
+  { eager: true, query: "?raw", import: "default" }
+) as Record<string, string>;
+
+// 載入 ui.yaml 原始文字
+const uiYamlRaw = (await import("/src/data/i18n/zh-TW/ui.yaml?raw")).default as string;
+
+const gameContent: GameContent = buildGameContent(mdFiles, uiYamlRaw);
 ---
 
-<GameShell content={typedGameContent} locale="zh-TW" />
+<GameShell content={gameContent} locale="zh-TW" />
