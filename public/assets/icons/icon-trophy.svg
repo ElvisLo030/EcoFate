@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" shape-rendering="crispEdges">
+  <!-- 杯口邊緣 -->
+  <rect x="2" y="0" width="12" height="2" fill="#C8880A"/>
+  <!-- 杯身 -->
+  <rect x="2" y="2" width="12" height="6" fill="#E8A800"/>
+  <!-- 側把手 -->
+  <rect x="0" y="2" width="2" height="4" fill="#E8A800"/>
+  <rect x="14" y="2" width="2" height="4" fill="#E8A800"/>
+  <!-- 高光 -->
+  <rect x="5" y="2" width="2" height="5" fill="#FFF59D"/>
+  <rect x="6" y="2" width="1" height="2" fill="#FFFFFF"/>
+  <!-- 細腰 -->
+  <rect x="5" y="8" width="6" height="2" fill="#C8880A"/>
+  <!-- 底座 -->
+  <rect x="3" y="10" width="10" height="4" fill="#C8880A"/>
+  <!-- 底座高光 -->
+  <rect x="4" y="10" width="8" height="1" fill="#E8A800"/>
+</svg>

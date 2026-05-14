@@ -42,10 +42,10 @@ nameErrorProfane: 玩家名稱含有不適合公開排行榜的文字。
 progressBarLabel: 環保積分進度
 
 # 設定面板
-settingsTitle: "⚙ 設定"
-settingsRestartButton: "↺ 重新開始"
-settingsHelpButton: "？ 查看引言"
-settingsHomeButton: "⌂ 返回主頁"
+settingsTitle: "設定"
+settingsRestartButton: "重新開始"
+settingsHelpButton: "查看引言"
+settingsHomeButton: "返回主頁"
 settingsRestartConfirm: 確定要從頭開始遊戲嗎？目前進度將會清除。
 settingsHomeConfirm: 是否儲存目前遊玩進度？
 settingsCopyrightText: All rights reserved.

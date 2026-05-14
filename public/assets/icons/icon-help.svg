@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" shape-rendering="crispEdges">
+  <!-- ? 頂部橫弧 -->
+  <rect x="4" y="1" width="8" height="2" fill="#555"/>
+  <!-- ? 左縱柱（頂） -->
+  <rect x="2" y="3" width="3" height="2" fill="#555"/>
+  <!-- ? 右縱柱 -->
+  <rect x="11" y="3" width="3" height="3" fill="#555"/>
+  <!-- ? 右下彎往中 -->
+  <rect x="8" y="6" width="4" height="2" fill="#555"/>
+  <!-- ? 豎幹（中） -->
+  <rect x="6" y="8" width="4" height="2" fill="#555"/>
+  <!-- ? 空白間距 row 10-12 -->
+  <!-- ? 豎幹（顯示） -->
+  <rect x="6" y="10" width="4" height="2" fill="#555"/>
+  <!-- ? 點 -->
+  <rect x="6" y="13" width="4" height="2" fill="#555"/>
+</svg>

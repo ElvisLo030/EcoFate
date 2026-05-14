@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" shape-rendering="crispEdges">
+  <!-- 上方齒牙 -->
+  <rect x="6" y="2" width="4" height="2" fill="#555"/>
+  <!-- 上方縮肩 -->
+  <rect x="5" y="4" width="6" height="1" fill="#555"/>
+  <!-- 齒輪體上緣整行 -->
+  <rect x="4" y="5" width="8" height="1" fill="#555"/>
+  <!-- 左齒牙 + 左環壁（中央留孔 x=6-9） -->
+  <rect x="2" y="6" width="4" height="4" fill="#555"/>
+  <!-- 右環壁 + 右齒牙 -->
+  <rect x="10" y="6" width="4" height="4" fill="#555"/>
+  <!-- 齒輪體下緣整行 -->
+  <rect x="4" y="10" width="8" height="1" fill="#555"/>
+  <!-- 下方縮肩 -->
+  <rect x="5" y="11" width="6" height="1" fill="#555"/>
+  <!-- 下方齒牙 -->
+  <rect x="6" y="12" width="4" height="2" fill="#555"/>
+</svg>

@@ -57,6 +57,19 @@ function renderCharacters(state: GameState | null): void {
 // ──────────────────────────────────────────────
 // 選單按鈕
 // ──────────────────────────────────────────────
+
+// 設定按鈕內容：像素風 SVG 圖示 + 文字（替代 emoji，確保跨裝置一致）
+function setBtnIcon(btn: HTMLButtonElement, iconFile: string, text: string): void {
+  const img = document.createElement("img");
+  img.className = "menu-btn-icon";
+  img.src = `${BASE_URL}assets/icons/${iconFile}`;
+  img.alt = "";
+  img.setAttribute("aria-hidden", "true");
+  const span = document.createElement("span");
+  span.textContent = text;
+  btn.replaceChildren(img, span);
+}
+
 function renderMenu(state: GameState | null): void {
   const menu = document.getElementById("home-menu");
   if (!menu) return;
@@ -70,20 +83,20 @@ function renderMenu(state: GameState | null): void {
   const primaryBtn = document.createElement("button");
   primaryBtn.className = "home-menu-btn home-menu-btn--primary";
   if (!hasSave) {
-    primaryBtn.textContent = "▶ 開始新遊戲";
+    setBtnIcon(primaryBtn, "icon-play.svg", "開始新遊戲");
     primaryBtn.addEventListener("click", () => {
       clearGameState();
       window.location.href = GAME_URL;
     });
   } else if (isCompleted) {
-    primaryBtn.textContent = "↺ 重新開始";
+    setBtnIcon(primaryBtn, "icon-restart.svg", "重新開始");
     primaryBtn.addEventListener("click", () => {
       if (!confirm("確定要清除存檔、重新開始嗎？")) return;
       clearGameState();
       window.location.href = GAME_URL;
     });
   } else {
-    primaryBtn.textContent = "▶ 繼續遊戲";
+    setBtnIcon(primaryBtn, "icon-play.svg", "繼續遊戲");
     primaryBtn.addEventListener("click", () => {
       window.location.href = GAME_URL;
     });
@@ -95,14 +108,14 @@ function renderMenu(state: GameState | null): void {
     // 選擇章節
     const chapterBtn = document.createElement("button");
     chapterBtn.className = "home-menu-btn home-menu-btn--secondary";
-    chapterBtn.textContent = "📖 選擇章節";
+    setBtnIcon(chapterBtn, "icon-book.svg", "選擇章節");
     chapterBtn.addEventListener("click", () => openChapterModal(state!));
     menu.append(chapterBtn);
 
     // 知識卡
     const knowledgeBtn = document.createElement("button");
     knowledgeBtn.className = "home-menu-btn home-menu-btn--knowledge";
-    knowledgeBtn.textContent = "💡 知識卡";
+    setBtnIcon(knowledgeBtn, "icon-bulb.svg", "知識卡");
     knowledgeBtn.addEventListener("click", () => openKnowledgeModal(state!));
     menu.append(knowledgeBtn);
   }
@@ -110,9 +123,16 @@ function renderMenu(state: GameState | null): void {
   // 排行榜（永遠顯示）
   const lbBtn = document.createElement("button");
   lbBtn.className = "home-menu-btn home-menu-btn--leaderboard";
-  lbBtn.textContent = "🏆 排行榜";
+  setBtnIcon(lbBtn, "icon-trophy.svg", "排行榜");
   lbBtn.addEventListener("click", openLeaderboardModal);
   menu.append(lbBtn);
+
+  // 開發團隊（永遠顯示）
+  const teamBtn = document.createElement("button");
+  teamBtn.className = "home-menu-btn home-menu-btn--team";
+  setBtnIcon(teamBtn, "icon-people.svg", "開發團隊");
+  teamBtn.addEventListener("click", openTeamModal);
+  menu.append(teamBtn);
 }
 
 // ──────────────────────────────────────────────
@@ -139,7 +159,7 @@ function renderKnowledgeDayList(listEl: HTMLElement, state: GameState): void {
     const chapterTitle = content.ui[`chapter${day.order}_title`] ?? day.theme;
     const char = content.characters[day.heroine];
     const btn = buildKnowledgeDayBtn(
-      isUnlocked ? `D${day.order}` : `🔒 D${day.order}`,
+      `D${day.order}`,
       chapterTitle,
       char,
       isUnlocked
@@ -186,7 +206,17 @@ function buildKnowledgeDayBtn(
 
   const labelEl = document.createElement("span");
   labelEl.className = "knowledge-day-btn__day-label";
-  labelEl.textContent = dayLabel;
+  if (!isUnlocked) {
+    // 鎖定狀態：用像素圖示取代 emoji
+    const lockImg = document.createElement("img");
+    lockImg.className = "knowledge-lock-icon";
+    lockImg.src = `${BASE_URL}assets/icons/icon-lock.svg`;
+    lockImg.alt = "鎖定";
+    lockImg.setAttribute("aria-hidden", "true");
+    labelEl.append(lockImg, document.createTextNode(` ${dayLabel}`));
+  } else {
+    labelEl.textContent = dayLabel;
+  }
 
   const chapterEl = document.createElement("span");
   chapterEl.className = "knowledge-day-btn__chapter";
@@ -242,7 +272,12 @@ function renderKnowledgeCardView(
       card.textContent = stage.knowledgePoint;
     } else {
       card.className = "knowledge-card knowledge-card--locked";
-      card.textContent = "🔒 完成該關卡後解鎖";
+      const lockImg = document.createElement("img");
+      lockImg.className = "knowledge-lock-icon";
+      lockImg.src = `${BASE_URL}assets/icons/icon-lock.svg`;
+      lockImg.alt = "鎖定";
+      lockImg.setAttribute("aria-hidden", "true");
+      card.append(lockImg, document.createTextNode(" 完成該關卡後解鎖"));
     }
     cardsContainer.append(card);
   }
@@ -424,6 +459,91 @@ function escapeHtml(text: string): string {
 }
 
 // ──────────────────────────────────────────────
+// 開發團隊 Modal
+// ──────────────────────────────────────────────
+function openTeamModal(): void {
+  const modal = document.getElementById("team-modal");
+  if (!modal) return;
+  const contentEl = document.getElementById("team-content");
+  if (!contentEl) return;
+
+  const raw = document.getElementById("team-md")?.textContent ?? "";
+  contentEl.replaceChildren(parseTeamMd(raw));
+  modal.hidden = false;
+}
+
+// 簡易 Markdown 解析：支援 # h1、## h2、- list、--- hr、空行段落
+function parseTeamMd(md: string): HTMLElement {
+  const wrap = document.createElement("div");
+  wrap.className = "team-content";
+  const lines = md.split("\n");
+  let ul: HTMLUListElement | null = null;
+
+  for (const line of lines) {
+    const t = line.trim();
+
+    if (t.startsWith("## ")) {
+      ul = null;
+      const h = document.createElement("h4");
+      h.className = "team-section-title";
+      h.textContent = t.slice(3);
+      wrap.append(h);
+    } else if (t.startsWith("# ")) {
+      ul = null;
+      const h = document.createElement("h3");
+      h.className = "team-main-title";
+      h.textContent = t.slice(2);
+      wrap.append(h);
+    } else if (t.startsWith("- ")) {
+      if (!ul) {
+        ul = document.createElement("ul");
+        ul.className = "team-list";
+        wrap.append(ul);
+      }
+      const li = document.createElement("li");
+      appendInlineContent(li, t.slice(2));
+      ul.append(li);
+    } else if (t === "---") {
+      ul = null;
+      wrap.append(document.createElement("hr"));
+    } else if (t) {
+      ul = null;
+      const p = document.createElement("p");
+      p.className = "team-desc";
+      appendInlineContent(p, t);
+      wrap.append(p);
+    }
+  }
+
+  return wrap;
+}
+
+// 解析行內 Markdown 連結 [文字](網址)，僅允許 http/https
+function appendInlineContent(el: HTMLElement, text: string): void {
+  const linkPattern = /\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g;
+  let last = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = linkPattern.exec(text)) !== null) {
+    if (match.index > last) {
+      el.append(document.createTextNode(text.slice(last, match.index)));
+    }
+    const a = document.createElement("a");
+    a.textContent = match[1];
+    a.href = match[2];
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
+    a.className = "team-link";
+    el.append(a);
+    last = match.index + match[0].length;
+  }
+
+  if (last < text.length) {
+    el.append(document.createTextNode(text.slice(last)));
+  }
+}
+
+// ──────────────────────────────────────────────
 // Modal 關閉按鈕
 // ──────────────────────────────────────────────
 function setupModalClose(modalId: string, closeId: string): void {
@@ -448,3 +568,4 @@ renderMenu(state);
 setupModalClose("knowledge-modal", "knowledge-modal-close");
 setupModalClose("chapter-modal", "chapter-modal-close");
 setupModalClose("leaderboard-modal", "leaderboard-modal-close");
+setupModalClose("team-modal", "team-modal-close");

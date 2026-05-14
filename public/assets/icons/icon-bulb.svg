@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" shape-rendering="crispEdges">
+  <!-- 燈泡頂部 -->
+  <rect x="6" y="0" width="4" height="1" fill="#C9900A"/>
+  <rect x="5" y="1" width="6" height="1" fill="#C9900A"/>
+  <!-- 燈泡主體 -->
+  <rect x="4" y="2" width="8" height="5" fill="#C9900A"/>
+  <rect x="3" y="3" width="10" height="3" fill="#C9900A"/>
+  <!-- 高光 -->
+  <rect x="7" y="2" width="2" height="3" fill="#FFF59D"/>
+  <!-- 燈泡下緣 -->
+  <rect x="5" y="7" width="6" height="1" fill="#C9900A"/>
+  <!-- 頸部 -->
+  <rect x="5" y="8" width="6" height="2" fill="#E8A800"/>
+  <!-- 金屬底座 -->
+  <rect x="5" y="10" width="6" height="1" fill="#888"/>
+  <rect x="5" y="11" width="6" height="1" fill="#bbb"/>
+  <rect x="5" y="12" width="6" height="1" fill="#888"/>
+  <!-- 底部插頭 -->
+  <rect x="6" y="13" width="4" height="2" fill="#666"/>
+</svg>

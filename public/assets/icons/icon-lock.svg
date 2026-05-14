@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" shape-rendering="crispEdges">
+  <!-- 鎖環（弧形上半） -->
+  <rect x="5" y="1" width="6" height="2" fill="#777"/>
+  <!-- 鎖環左柱 -->
+  <rect x="3" y="3" width="2" height="5" fill="#777"/>
+  <!-- 鎖環右柱 -->
+  <rect x="11" y="3" width="2" height="5" fill="#777"/>
+  <!-- 鎖體 -->
+  <rect x="2" y="7" width="12" height="8" fill="#555"/>
+  <!-- 鑰匙孔（以亮色表示） -->
+  <rect x="6" y="9" width="4" height="2" fill="#888"/>
+  <rect x="7" y="11" width="2" height="2" fill="#888"/>
+</svg>

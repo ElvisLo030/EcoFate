@@ -5,6 +5,7 @@ import { clearGameState, loadGameState, resetGameState, saveGameState } from "@/
 import type { AnswerResult, BranchCondition, DayContent, DayId, DayIntroContent, DayOutroBranchContent, EndingResultContent, GameContent, GameState, NameDayIntroContent, PrologueScene, SpRouteContent, SpRouteId, StageContent, StorySceneContent } from "@/lib/game/types";
 import { sanitizeNickname, MAX_NICKNAME_LENGTH } from "@/lib/security/profanity";
 
+const BASE_URL = import.meta.env.BASE_URL || "/";
 const content = readContent();
 
 const refs = {
@@ -423,7 +424,7 @@ function render(): void {
   refs.routeLabel.textContent = stage.routeLabel;
   refs.stageTitle.textContent = stage.title;
   refs.sceneVisual.dataset.bg = stage.background;
-  refs.characterPortrait.src = character.portrait;
+  refs.characterPortrait.src = `${BASE_URL}${character.portrait}`;
   refs.characterPortrait.alt = fmt(content.ui.portraitAltFormat, { displayName: character.displayName });
   refs.speakerName.textContent = character.displayName;
   refs.speakerName.style.background = character.accent;
@@ -476,7 +477,7 @@ function renderPrologue(): void {
   refs.routeLabel.textContent = prologue.routeLabel;
   refs.stageTitle.textContent = prologue.title;
   refs.sceneVisual.dataset.bg = prologue.background;
-  refs.characterPortrait.src = character.portrait;
+  refs.characterPortrait.src = `${BASE_URL}${character.portrait}`;
   refs.characterPortrait.alt = fmt(content.ui.portraitAltFormat, { displayName: character.displayName });
   refs.speakerName.textContent = character.displayName;
   refs.speakerName.style.background = character.accent;
@@ -567,7 +568,7 @@ function renderDayIntro(): void {
   refs.routeLabel.textContent = intro.routeLabel;
   refs.stageTitle.textContent = intro.title;
   refs.sceneVisual.dataset.bg = intro.background;
-  refs.characterPortrait.src = character.portrait;
+  refs.characterPortrait.src = `${BASE_URL}${character.portrait}`;
   refs.characterPortrait.alt = fmt(content.ui.portraitAltFormat, { displayName: character.displayName });
   refs.speakerName.textContent = character.displayName;
   refs.speakerName.style.background = character.accent;
@@ -722,7 +723,7 @@ function renderDayOutro(): void {
   refs.routeLabel.textContent = outro.routeLabel;
   refs.stageTitle.textContent = outro.title;
   refs.sceneVisual.dataset.bg = outro.background;
-  refs.characterPortrait.src = character.portrait;
+  refs.characterPortrait.src = `${BASE_URL}${character.portrait}`;
   refs.characterPortrait.alt = fmt(content.ui.portraitAltFormat, { displayName: character.displayName });
   refs.speakerName.textContent = character.displayName;
   refs.speakerName.style.background = character.accent;
@@ -941,7 +942,7 @@ function renderSpStage(route: SpRouteContent): void {
   refs.stageTitle.textContent = stage.title;
   refs.sceneVisual.classList.remove("is-hidden-unlock");
   refs.sceneVisual.dataset.bg = stage.background;
-  refs.characterPortrait.src = character.portrait;
+  refs.characterPortrait.src = `${BASE_URL}${character.portrait}`;
   refs.characterPortrait.alt = fmt(content.ui.portraitAltFormat, { displayName: character.displayName });
   refs.speakerName.textContent = character.displayName;
   refs.speakerName.style.background = character.accent;
@@ -1066,7 +1067,7 @@ function renderStoryScene(
     refs.sceneVisual.classList.add(options.sceneEffect);
   }
   refs.sceneVisual.dataset.bg = scene.background;
-  refs.characterPortrait.src = character.portrait;
+  refs.characterPortrait.src = `${BASE_URL}${character.portrait}`;
   refs.characterPortrait.alt = fmt(content.ui.portraitAltFormat, { displayName: character.displayName });
   refs.speakerName.textContent = character.displayName;
   refs.speakerName.style.background = character.accent;
@@ -1117,7 +1118,7 @@ function renderBeforeStart(): void {
   refs.routeLabel.textContent = fmt(content.ui.dayLabelFormat, { dayOrder: 1 });
   refs.stageTitle.textContent = content.ui.namePromptTitle;
   refs.sceneVisual.dataset.bg = "club";
-  refs.characterPortrait.src = character.portrait;
+  refs.characterPortrait.src = `${BASE_URL}${character.portrait}`;
   refs.characterPortrait.alt = fmt(content.ui.portraitAltFormat, { displayName: character.displayName });
   refs.speakerName.textContent = character.displayName;
   refs.speakerName.style.background = character.accent;
@@ -1351,7 +1352,7 @@ function renderResultReport(ending: EndingResultContent): void {
   refs.routeLabel.textContent = ending.routeLabel;
   refs.stageTitle.textContent = ending.title;
   refs.sceneVisual.dataset.bg = lastStage.background;
-  refs.characterPortrait.src = character.portrait;
+  refs.characterPortrait.src = `${BASE_URL}${character.portrait}`;
   refs.characterPortrait.alt = fmt(content.ui.portraitAltFormat, { displayName: character.displayName });
   refs.speakerName.textContent = character.displayName;
   refs.speakerName.style.background = character.accent;
@@ -1456,7 +1457,7 @@ function playNextSegment(): void {
   // 每段更新說話者與立繪
   refs.speakerName.textContent = character.displayName;
   refs.speakerName.style.background = character.accent;
-  refs.characterPortrait.src = character.portrait;
+  refs.characterPortrait.src = `${BASE_URL}${character.portrait}`;
   refs.characterPortrait.alt = fmt(content.ui.portraitAltFormat, { displayName: character.displayName });
   animate(refs.characterPortrait, { transform: ["translateY(6px)", "translateY(0)"], opacity: [0.8, 1] }, { duration: 0.22 });
 

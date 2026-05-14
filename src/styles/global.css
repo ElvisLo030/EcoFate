@@ -69,6 +69,8 @@
 }
 
 .settings-action-btn {
+  display: flex;
+  align-items: center;
   min-height: 46px;
   padding: 10px 16px;
   border: 3px solid var(--line);
@@ -1113,6 +1115,7 @@ button:disabled {
   flex-direction: column;
   align-items: center;
   gap: 6px;
+  padding-bottom: 8px;
 }
 
 .pixel-title-badge {
@@ -1170,6 +1173,8 @@ button:disabled {
 }
 
 .home-menu-btn {
+  display: flex;
+  align-items: center;
   min-height: 52px;
   padding: 10px 18px;
   border: 3px solid var(--line);
@@ -1204,6 +1209,108 @@ button:disabled {
 .home-menu-btn--leaderboard {
   background: #e8f0ff;
   border-color: #4a6fa5;
+}
+
+.home-menu-btn--team {
+  background: #f0ebe8;
+  border-color: #8b6e5a;
+}
+
+/* 按鈕內像素風圖示：flex child，由父容器 align-items: center 控制垂直對齊 */
+.menu-btn-icon {
+  display: block;
+  width: 20px;
+  height: 20px;
+  margin-right: 8px;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  flex-shrink: 0;
+}
+
+/* 設定齒輪按鈕圖示（遊戲頁右上角，父容器已是 flex） */
+.settings-btn-icon {
+  display: block;
+  width: 18px;
+  height: 18px;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* Modal 標題列圖示（h2 內，父 h2 已改為 flex） */
+.modal-title-icon {
+  display: block;
+  width: 18px;
+  height: 18px;
+  margin-right: 6px;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  flex-shrink: 0;
+}
+
+/* 知識卡鎖定圖示（flex child，由父容器對齊） */
+.knowledge-lock-icon {
+  display: block;
+  width: 14px;
+  height: 14px;
+  margin-right: 4px;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  flex-shrink: 0;
+}
+
+/* ── 開發團隊 Modal 內容 ── */
+.team-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.team-main-title {
+  margin: 0 0 4px;
+  font-size: 1rem;
+  font-weight: 900;
+  border-bottom: 3px solid var(--line);
+  padding-bottom: 6px;
+}
+
+.team-section-title {
+  margin: 10px 0 2px;
+  font-size: 0.88rem;
+  font-weight: 900;
+  color: var(--mint-dark);
+}
+
+.team-list {
+  margin: 0;
+  padding-left: 1.4em;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.92rem;
+}
+
+.team-desc {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.65;
+  color: #5a4860;
+}
+
+.team-content hr {
+  border: none;
+  border-top: 2px solid var(--line);
+  margin: 8px 0 4px;
+  opacity: 0.4;
+}
+
+.team-link {
+  color: var(--mint-dark);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.team-link:hover {
+  text-decoration: underline;
 }
 
 .home-footer {
@@ -1261,6 +1368,8 @@ button:disabled {
 }
 
 .home-modal-title {
+  display: flex;
+  align-items: center;
   flex: 1;
   margin: 0;
   font-size: 0.95rem;
@@ -1317,6 +1426,8 @@ button:disabled {
 }
 
 .knowledge-card--locked {
+  display: flex;
+  align-items: center;
   background: #f0f0f0;
   color: #999;
   font-style: italic;
@@ -1428,6 +1539,8 @@ button:disabled {
 }
 
 .knowledge-day-btn__day-label {
+  display: flex;
+  align-items: center;
   font-size: 0.78rem;
   font-weight: 900;
   color: var(--mint-dark);

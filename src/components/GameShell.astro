@@ -21,6 +21,7 @@ if (contentErrors.length > 0) {
 }
 
 const serializedContent = JSON.stringify(content).replaceAll("<", "\\u003c");
+const BASE = import.meta.env.BASE_URL;
 
 function fmtDay(template: string, order: number): string {
   return template.replace("{dayOrder}", String(order));
@@ -57,9 +58,18 @@ function fmtDay(template: string, order: number): string {
           <button class="settings-close-btn" id="settings-close" type="button" aria-label={content.ui.closeButtonLabel}>✕</button>
         </div>
         <div class="settings-body">
-          <button class="settings-action-btn settings-action-btn--warning" id="settings-restart" type="button">{content.ui.settingsRestartButton}</button>
-          <button class="settings-action-btn settings-action-btn--info" id="settings-help" type="button">{content.ui.settingsHelpButton}</button>
-          <button class="settings-action-btn settings-action-btn--home" id="settings-home" type="button">{content.ui.settingsHomeButton}</button>
+          <button class="settings-action-btn settings-action-btn--warning" id="settings-restart" type="button">
+            <img class="menu-btn-icon" src={`${BASE}assets/icons/icon-restart.svg`} alt="" aria-hidden="true" />
+            <span>{content.ui.settingsRestartButton}</span>
+          </button>
+          <button class="settings-action-btn settings-action-btn--info" id="settings-help" type="button">
+            <img class="menu-btn-icon" src={`${BASE}assets/icons/icon-help.svg`} alt="" aria-hidden="true" />
+            <span>{content.ui.settingsHelpButton}</span>
+          </button>
+          <button class="settings-action-btn settings-action-btn--home" id="settings-home" type="button">
+            <img class="menu-btn-icon" src={`${BASE}assets/icons/icon-home.svg`} alt="" aria-hidden="true" />
+            <span>{content.ui.settingsHomeButton}</span>
+          </button>
         </div>
         <footer class="settings-footer">
           <p class="settings-copyright">
@@ -124,7 +134,9 @@ function fmtDay(template: string, order: number): string {
             </div>
             <h1 class="brand">{content.meta.title}</h1>
           </div>
-          <button class="settings-button" id="settings-button" type="button" aria-label={content.ui.settingsButtonLabel}>⚙</button>
+          <button class="settings-button" id="settings-button" type="button" aria-label={content.ui.settingsButtonLabel}>
+            <img class="settings-btn-icon" src={`${BASE}assets/icons/icon-settings.svg`} alt="" aria-hidden="true" />
+          </button>
         </header>
 
         <section class="status-strip" aria-label={content.ui.statusBarLabel}>
