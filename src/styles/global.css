@@ -1096,40 +1096,71 @@ button:disabled {
 }
 
 .home-hero {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 24px 16px 16px;
+  /* padding-bottom 預留角色頭部露出的高度 */
+  padding: 20px 16px 60px;
   background: linear-gradient(180deg, #fff2f8 0%, #fffdf7 100%);
   border-bottom: 4px solid var(--line);
-  gap: 16px;
+  gap: 12px;
+  overflow: hidden;
+}
+
+.pixel-title-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.pixel-title-badge {
+  margin: 0;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.58rem;
+  color: var(--mint-dark);
+  letter-spacing: 0.08em;
+  opacity: 0.9;
 }
 
 .pixel-game-title {
   margin: 0;
-  font-size: clamp(1.5rem, 6vw, 2.2rem);
+  font-size: clamp(1.8rem, 7vw, 2.5rem);
   font-weight: 900;
   text-align: center;
-  line-height: 1.2;
-  letter-spacing: 0.05em;
-  text-shadow: 3px 3px 0 rgba(52, 38, 57, 0.18);
+  line-height: 1.25;
+  letter-spacing: 0.06em;
+  /* 像素塊陰影：右側粉紅、下側薄荷，再加深色主陰影 */
+  text-shadow:
+    4px 0 0 var(--sakura),
+    -2px 0 0 var(--sakura),
+    0 4px 0 var(--mint),
+    4px 4px 0 rgba(52, 38, 57, 0.28),
+    8px 8px 0 rgba(52, 38, 57, 0.1);
 }
 
 .home-characters {
+  /* 絕對定位至底部外框，讓角色身體超出後被 overflow:hidden 裁切 */
+  position: absolute;
+  bottom: -72px;
+  left: 0;
+  right: 0;
   display: flex;
-  align-items: flex-end;
   justify-content: center;
+  align-items: flex-end;
   gap: 0;
-  min-height: 120px;
 }
 
 .home-character-img {
-  width: 80px;
-  height: 120px;
+  width: 72px;
+  height: 130px;
   object-fit: contain;
+  /* 從頂部對齊，確保頭部露出 */
+  object-position: top;
   image-rendering: pixelated;
-  filter: drop-shadow(4px 4px 0 rgba(52, 38, 57, 0.18));
-  margin: 0 -6px;
+  filter: drop-shadow(3px 0 0 rgba(52, 38, 57, 0.2));
+  margin: 0 -8px;
 }
 
 .home-menu {
@@ -1316,6 +1347,11 @@ button:disabled {
   border-color: var(--mint-dark);
 }
 
+.chapter-btn--sp {
+  background: #fff5f8;
+  border-color: var(--sakura);
+}
+
 /* ── 排行榜 (主頁 Modal) ── */
 .leaderboard-table {
   width: 100%;
@@ -1353,13 +1389,13 @@ button:disabled {
 }
 
 .knowledge-day-btn {
+  position: relative;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
   width: 100%;
   min-height: 72px;
-  padding: 10px 12px;
+  /* 右側留空間給斜露的角色頭部 */
+  padding: 10px 60px 10px 12px;
   border: 3px solid var(--line);
   border-radius: 0;
   background: var(--paper);
@@ -1412,12 +1448,18 @@ button:disabled {
 }
 
 .knowledge-day-btn__thumb {
-  flex-shrink: 0;
-  width: 48px;
-  height: 68px;
+  position: absolute;
+  /* 圖片大部分沉到按鈕底部外，只讓頭部從底部右角露出 */
+  bottom: -50px;
+  right: -42px;
+  width: 100px;
+  height: 120px;
   object-fit: contain;
   object-position: top;
   image-rendering: pixelated;
+  /* 以底部中心為軸微微逆時針傾斜，產生從右下角探出的感覺 */
+  transform: rotate(-15deg);
+  transform-origin: bottom center;
 }
 
 .knowledge-day-btn--locked .knowledge-day-btn__thumb {

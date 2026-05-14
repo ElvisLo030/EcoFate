@@ -73,12 +73,12 @@ const CHARACTERS: Record<string, CharacterContent> = {
   },
   jinsui: {
     displayName: "金穗",
-    portrait: "assets/characters/system.svg",
+    portrait: "assets/characters/jin-sui.svg",
     accent: "#f0c85a",
   },
   yiyun: {
     displayName: "一雲",
-    portrait: "assets/characters/system.svg",
+    portrait: "assets/characters/onecloud.svg",
     accent: "#8fd3ff",
   },
   mystery: {

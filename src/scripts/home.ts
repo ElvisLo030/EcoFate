@@ -1,6 +1,6 @@
 import { loadGameState, saveGameState, clearGameState } from "@/lib/game/storage";
 import { createLeaderboardService } from "@/lib/leaderboard/firebase";
-import type { GameContent, GameState, DayId } from "@/lib/game/types";
+import type { GameContent, GameState, DayId, SpRouteContent } from "@/lib/game/types";
 
 // ──────────────────────────────────────────────
 // 讀取遊戲內容（建置期序列化到頁面）
@@ -274,6 +274,19 @@ function openChapterModal(state: GameState): void {
     listEl.append(btn);
   }
 
+  // SP 路線（僅顯示已遊玩完成的）
+  if (content.spRoutes) {
+    content.spRoutes.forEach((sp, spIdx) => {
+      if (!state.completedSpRoutes.includes(sp.id)) return;
+      const spTitle = content.ui[`special_chapter${spIdx + 1}_title`] ?? sp.displayName;
+      const btn = document.createElement("button");
+      btn.className = "chapter-btn chapter-btn--sp";
+      btn.textContent = `${sp.id.toUpperCase()}：${spTitle}`;
+      btn.addEventListener("click", () => jumpToSpRoute(state, sp));
+      listEl.append(btn);
+    });
+  }
+
   modal.hidden = false;
 }
 
@@ -323,6 +336,35 @@ function jumpToChapter(state: GameState, dayIndex: number): void {
 
   // 重新計算 totalScore
   state.totalScore = Object.values(state.dayScores).reduce((s, v) => s + v, 0);
+
+  saveGameState(state);
+  window.location.href = GAME_URL;
+}
+
+function jumpToSpRoute(state: GameState, sp: SpRouteContent): void {
+  const spTitle = sp.displayName;
+  if (!confirm(`確定要重新遊玩「${spTitle}」？此 SP 路線積分將會重置。`)) return;
+
+  // 設定 SP 路線為當前播放中
+  state.currentSpRouteId = sp.id;
+  state.currentSpStageIndex = 0;
+  state.pendingSpRouteId = null;
+
+  // 重設 intro 完成狀態，讓 intro 重播
+  state.completedSpRouteIntros = state.completedSpRouteIntros.filter((id) => id !== sp.id);
+
+  // 重設 SP 路線積分
+  state.spScores[sp.id] = 0;
+  state.totalScore =
+    Object.values(state.dayScores).reduce((s, v) => s + v, 0) +
+    Object.values(state.spScores).reduce((s, v) => s + v, 0);
+
+  // 若遊戲已完成，清除完成狀態讓 SP 路線能正常執行
+  if (state.completed) {
+    state.completed = false;
+    state.completedEnding = false;
+    state.completedEpilogue = false;
+  }
 
   saveGameState(state);
   window.location.href = GAME_URL;

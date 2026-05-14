@@ -20,6 +20,9 @@ const serializedContent = JSON.stringify(gameContent).replaceAll("<", "\\u003c")
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={gameContent.meta.subtitle} />
     <title>{gameContent.meta.title}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
     <!-- Google tag (gtag.js) -->
     <script is:inline async src="https://www.googletagmanager.com/gtag/js?id=G-EZSNTNY74B"></script>
     <script is:inline>
@@ -50,9 +53,12 @@ const serializedContent = JSON.stringify(gameContent).replaceAll("<", "\\u003c")
           <h1 class="home-brand sr-only">{gameContent.meta.title}</h1>
         </header>
 
-        <!-- 英雄區（標題 + 角色） -->
+        <!-- 主頁（標題 + 角色） -->
         <div class="home-hero">
-          <p class="pixel-game-title">永續回收<br>命運機</p>
+          <div class="pixel-title-wrap">
+            <p class="pixel-title-badge">ECO &times; GAME</p>
+            <p class="pixel-game-title">永續回收<br>命運機</p>
+          </div>
           <div class="home-characters" id="home-characters" aria-hidden="true"></div>
         </div>
 
