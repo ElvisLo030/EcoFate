@@ -391,6 +391,10 @@ function parseStageMd(raw: string, dayId: DayId, stageOrder: number): StageConte
   // 各選項回應（### 回應：X）
   const responseDialogues = buildResponseDialogues(sections, options, stageId);
 
+  // 知識點（### 知識點）
+  const knowledgeLines = sections["知識點"] ?? [];
+  const knowledgePoint = knowledgeLines.map((l) => l.trim()).filter(Boolean).join("") || undefined;
+
   return {
     id: stageId,
     routeLabel,
@@ -406,6 +410,7 @@ function parseStageMd(raw: string, dayId: DayId, stageOrder: number): StageConte
       correct: "",
       wrong: "",
     },
+    knowledgePoint,
   };
 }
 
@@ -554,6 +559,10 @@ function parseSpStageMd(raw: string, spId: SpRouteId, order: number): StageConte
   const introLines = sections["引導對話"] ?? [];
   const responseDialogues = buildResponseDialogues(sections, options, stageId);
 
+  // 知識點（### 知識點）
+  const knowledgeLines = sections["知識點"] ?? [];
+  const knowledgePoint = knowledgeLines.map((l) => l.trim()).filter(Boolean).join("") || undefined;
+
   return {
     id: stageId,
     routeLabel,
@@ -566,6 +575,7 @@ function parseSpStageMd(raw: string, spId: SpRouteId, order: number): StageConte
     options,
     responseDialogues,
     feedback: { correct: "", wrong: "" },
+    knowledgePoint,
   };
 }
 

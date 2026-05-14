@@ -40,13 +40,26 @@ const refs = {
   leaderboardForm: getElement<HTMLFormElement>("leaderboard-form"),
   submitScoreButton: getElement<HTMLButtonElement>("submit-score-button"),
   leaderboardStatus: getElement<HTMLElement>("leaderboard-status"),
-  leaderboardList: getElement<HTMLOListElement>("leaderboard-list")
+  leaderboardList: getElement<HTMLOListElement>("leaderboard-list"),
+  sidePanel: getElement<HTMLElement>("side-panel"),
+  footerBar: getElement<HTMLElement>("footer-bar")
 };
 
-// 監聽 choiceList 子元素變化，有內容時顯示整個 choice-area，否則隱藏
+// 監聽 choiceList 子元素變化，有內容時顯示 choice-area 與 side-panel
 new MutationObserver(() => {
-  refs.choiceArea.hidden = refs.choiceList.children.length === 0;
+  const hasChoices = refs.choiceList.children.length > 0;
+  refs.choiceArea.hidden = !hasChoices;
+  if (!refs.resultPanel.hidden) {
+    refs.sidePanel.hidden = false;
+  } else {
+    refs.sidePanel.hidden = !hasChoices;
+  }
 }).observe(refs.choiceList, { childList: true });
+
+// 監聽 nextButton 屬性變化，控制 footer-bar 可見性
+new MutationObserver(() => {
+  refs.footerBar.hidden = refs.nextButton.disabled || refs.nextButton.hidden;
+}).observe(refs.nextButton, { attributes: true, attributeFilter: ["disabled", "hidden"] });
 
 let state = loadGameState();
 // 存檔與目前天數結構不符時清除
@@ -126,6 +139,9 @@ let isNameEntryMode = false;
 let pendingOptionId: string | null = null;
 let onDialogComplete: (() => void) | null = null;
 
+// 回應對話開始後，下次點擊對話框即隱藏 side-panel
+let hideSidePanelOnNextDialogClick = false;
+
 // 序章狀態
 type ProloguePhase = "pre-choice" | "branch" | "ending";
 let prologueCompleted = Boolean(state);
@@ -148,6 +164,7 @@ const settingsPanel = document.getElementById("settings-panel") as HTMLDivElemen
 const settingsClose = document.getElementById("settings-close") as HTMLButtonElement | null;
 const settingsRestart = document.getElementById("settings-restart") as HTMLButtonElement | null;
 const settingsHelp = document.getElementById("settings-help") as HTMLButtonElement | null;
+const settingsHome = document.getElementById("settings-home") as HTMLButtonElement | null;
 
 refs.settingsButton.addEventListener("click", () => {
   if (settingsPanel) settingsPanel.hidden = false;
@@ -184,6 +201,13 @@ settingsHelp?.addEventListener("click", () => {
   if (settingsPanel) settingsPanel.hidden = true;
   const overlay = document.getElementById("welcome-overlay");
   if (overlay) overlay.hidden = false;
+});
+
+settingsHome?.addEventListener("click", () => {
+  if (settingsPanel) settingsPanel.hidden = true;
+  const wantSave = confirm(content.ui.settingsHomeConfirm);
+  if (wantSave && state) saveGameState(state);
+  window.location.href = import.meta.env.BASE_URL || "/";
 });
 
 refs.nextButton.addEventListener("click", () => {
@@ -294,6 +318,12 @@ refs.nextButton.addEventListener("click", () => {
 
 // 點擊對話框：跳過打字機或推進分段
 refs.dialogBox.addEventListener("click", () => {
+  // 回應對話後首次點擊：隱藏 side-panel
+  if (hideSidePanelOnNextDialogClick) {
+    hideSidePanelOnNextDialogClick = false;
+    refs.sidePanel.hidden = true;
+  }
+
   if (currentTween?.isActive()) {
     // 打字機播放中：立即跳至段落末尾
     currentTween.kill();
@@ -303,6 +333,7 @@ refs.dialogBox.addEventListener("click", () => {
     if (pendingSegments.length > 0) {
       isDialogPaused = true;
       refs.dialogContinue.hidden = false;
+      requestAnimationFrame(() => { refs.dialogText.scrollTop = refs.dialogText.scrollHeight; });
     } else {
       // 最後一段跳過：觸發對話完成回調
       const cb = onDialogComplete;
@@ -1182,6 +1213,8 @@ function renderStageResponse(stage: StageContent, selectedOptionId: string, onCo
     return;
   }
 
+  // 回應對話開始，下次點擊對話框後隱藏 side-panel
+  hideSidePanelOnNextDialogClick = true;
   onDialogComplete = onComplete;
   renderDialog(replacePlaceholders(responseDialogue, state));
 }
@@ -1313,6 +1346,7 @@ function renderResultReport(ending: EndingResultContent): void {
   const completedAt = state.completedAt ?? Date.now();
 
   refs.resultPanel.hidden = false;
+  refs.sidePanel.hidden = false;
   refs.nextButton.hidden = true;
   refs.routeLabel.textContent = ending.routeLabel;
   refs.stageTitle.textContent = ending.title;
@@ -1439,6 +1473,7 @@ function playNextSegment(): void {
     ease: "none",
     onUpdate: () => {
       refs.dialogText.textContent = currentSegmentText.slice(0, Math.round(cursor.index));
+      refs.dialogText.scrollTop = refs.dialogText.scrollHeight;
     },
     onComplete: () => {
       currentTween = null;
@@ -1446,6 +1481,7 @@ function playNextSegment(): void {
       if (hasMore) {
         isDialogPaused = true;
         refs.dialogContinue.hidden = false;
+        requestAnimationFrame(() => { refs.dialogText.scrollTop = refs.dialogText.scrollHeight; });
       } else {
         // 最後一段打完：觸發對話完成回調
         const cb = onDialogComplete;

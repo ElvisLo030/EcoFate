@@ -1,19 +1,123 @@
 ---
-import GameShell from "@/components/GameShell.astro";
 import { buildGameContent } from "@/lib/game/scriptLoader";
 import type { GameContent } from "@/lib/game/types";
 import "@/styles/global.css";
 
-// Vite 在建置期載入所有 .md 劇本原始文字
 const mdFiles = import.meta.glob(
   "/src/data/i18n/zh-TW/script/**/*.md",
   { eager: true, query: "?raw", import: "default" }
 ) as Record<string, string>;
 
-// 載入 ui.yaml 原始文字
 const uiYamlRaw = (await import("/src/data/i18n/zh-TW/ui.yaml?raw")).default as string;
-
 const gameContent: GameContent = buildGameContent(mdFiles, uiYamlRaw);
+const serializedContent = JSON.stringify(gameContent).replaceAll("<", "\\u003c");
 ---
 
-<GameShell content={gameContent} locale="zh-TW" />
+<!doctype html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={gameContent.meta.subtitle} />
+    <title>{gameContent.meta.title}</title>
+    <!-- Google tag (gtag.js) -->
+    <script is:inline async src="https://www.googletagmanager.com/gtag/js?id=G-EZSNTNY74B"></script>
+    <script is:inline>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-EZSNTNY74B');
+    </script>
+  </head>
+  <body>
+    <!-- 橫向 / 桌機提示 -->
+    <div class="device-overlay landscape-overlay" role="alert">
+      <p class="device-overlay__msg">{gameContent.ui.landscapeOverlayText}</p>
+    </div>
+    <div class="device-overlay desktop-overlay" role="alert">
+      <p class="device-overlay__msg">{gameContent.ui.desktopOverlayText}</p>
+    </div>
+
+    <main class="home-shell">
+      <div class="home-window">
+        <!-- 標題列 -->
+        <header class="home-title-bar">
+          <div class="window-controls" aria-hidden="true">
+            <span class="window-dot"></span>
+            <span class="window-dot"></span>
+            <span class="window-dot"></span>
+          </div>
+          <h1 class="home-brand sr-only">{gameContent.meta.title}</h1>
+        </header>
+
+        <!-- 英雄區（標題 + 角色） -->
+        <div class="home-hero">
+          <p class="pixel-game-title">永續回收<br>命運機</p>
+          <div class="home-characters" id="home-characters" aria-hidden="true"></div>
+        </div>
+
+        <!-- 選單 -->
+        <nav class="home-menu" id="home-menu" aria-label="主選單"></nav>
+
+        <!-- 頁腳 -->
+        <footer class="home-footer">
+          © 2026 <a href="https://elvislo.tw" target="_blank" rel="noopener noreferrer">ElvisLo</a>
+          {gameContent.ui.settingsCopyrightText}
+        </footer>
+      </div>
+    </main>
+
+    <!-- ── 知識卡 Modal ── -->
+    <div id="knowledge-modal" class="home-modal-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="knowledge-modal-title">
+      <div class="home-modal-window">
+        <div class="home-modal-titlebar">
+          <div class="window-controls" aria-hidden="true">
+            <span class="window-dot"></span>
+            <span class="window-dot"></span>
+            <span class="window-dot"></span>
+          </div>
+          <h2 class="home-modal-title" id="knowledge-modal-title">💡 知識卡</h2>
+          <button class="home-modal-close" id="knowledge-modal-close" type="button" aria-label="關閉">✕</button>
+        </div>
+        <div class="home-modal-body" id="knowledge-list"></div>
+      </div>
+    </div>
+
+    <!-- ── 選擇章節 Modal ── -->
+    <div id="chapter-modal" class="home-modal-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="chapter-modal-title">
+      <div class="home-modal-window">
+        <div class="home-modal-titlebar">
+          <div class="window-controls" aria-hidden="true">
+            <span class="window-dot"></span>
+            <span class="window-dot"></span>
+            <span class="window-dot"></span>
+          </div>
+          <h2 class="home-modal-title" id="chapter-modal-title">📖 選擇章節</h2>
+          <button class="home-modal-close" id="chapter-modal-close" type="button" aria-label="關閉">✕</button>
+        </div>
+        <div class="home-modal-body" id="chapter-list"></div>
+      </div>
+    </div>
+
+    <!-- ── 排行榜 Modal ── -->
+    <div id="leaderboard-modal" class="home-modal-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="leaderboard-modal-title">
+      <div class="home-modal-window">
+        <div class="home-modal-titlebar">
+          <div class="window-controls" aria-hidden="true">
+            <span class="window-dot"></span>
+            <span class="window-dot"></span>
+            <span class="window-dot"></span>
+          </div>
+          <h2 class="home-modal-title" id="leaderboard-modal-title">🏆 排行榜</h2>
+          <button class="home-modal-close" id="leaderboard-modal-close" type="button" aria-label="關閉">✕</button>
+        </div>
+        <div class="home-modal-body" id="leaderboard-content"></div>
+      </div>
+    </div>
+
+    <script is:inline type="application/json" id="game-content" set:html={serializedContent}></script>
+    <script>
+      import "@/scripts/home";
+    </script>
+  </body>
+</html>

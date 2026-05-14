@@ -637,13 +637,21 @@ button:disabled {
 }
 
 .dialog-box {
-  display: grid;
-  gap: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   padding: 16px;
-  width: min(470px, 100%);
-  flex-shrink: 0;
-  border-bottom: 4px solid var(--line);
+  width: 360px;
+  flex: 1;
+  min-height: 175px;
+  overflow: hidden;
   background: #fffdf7;
+}
+
+/* 選項出現時縮回固定高度並恢復分隔線 */
+.main-grid:has(.side-panel:not([hidden])) .dialog-box {
+  flex: 0 0 175px;
+  border-bottom: 4px solid var(--line);
 }
 
 .dialog-box[hidden] {
@@ -660,7 +668,9 @@ button:disabled {
 }
 
 .dialog-text {
-  min-height: 60px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
   margin: 0;
   font-size: 1.02rem;
   line-height: 1.7;
@@ -703,7 +713,6 @@ button:disabled {
   align-content: start;
   gap: 12px;
   padding: 16px;
-  border-top: 4px solid var(--line);
   overflow: auto;
 }
 
@@ -755,7 +764,9 @@ button:disabled {
 .choice-area[hidden],
 .feedback-box[hidden],
 .result-panel[hidden],
-.toast-stack[hidden] {
+.toast-stack[hidden],
+.side-panel[hidden],
+.footer-bar[hidden] {
   display: none;
 }
 
@@ -1039,4 +1050,415 @@ button:disabled {
     align-items: stretch;
     flex-direction: column;
   }
+}
+
+/* ── 設定面板：返回主頁按鈕 ── */
+.settings-action-btn--home {
+  background: #e8f0ff;
+  border-color: #4a6fa5;
+}
+
+/* ── 主頁 ── */
+.home-shell {
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 16px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.home-window {
+  width: 100%;
+  max-width: 480px;
+  border: 4px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel);
+  box-shadow: 6px 6px 0 rgba(52, 38, 57, 0.28);
+  overflow: hidden;
+}
+
+.home-title-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 6px 12px;
+  background: linear-gradient(90deg, var(--sakura), var(--mint));
+  border-bottom: 4px solid var(--line);
+}
+
+.home-brand {
+  flex: 1;
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 900;
+}
+
+.home-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 16px 16px;
+  background: linear-gradient(180deg, #fff2f8 0%, #fffdf7 100%);
+  border-bottom: 4px solid var(--line);
+  gap: 16px;
+}
+
+.pixel-game-title {
+  margin: 0;
+  font-size: clamp(1.5rem, 6vw, 2.2rem);
+  font-weight: 900;
+  text-align: center;
+  line-height: 1.2;
+  letter-spacing: 0.05em;
+  text-shadow: 3px 3px 0 rgba(52, 38, 57, 0.18);
+}
+
+.home-characters {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 0;
+  min-height: 120px;
+}
+
+.home-character-img {
+  width: 80px;
+  height: 120px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  filter: drop-shadow(4px 4px 0 rgba(52, 38, 57, 0.18));
+  margin: 0 -6px;
+}
+
+.home-menu {
+  display: grid;
+  gap: 12px;
+  padding: 20px 16px;
+}
+
+.home-menu-btn {
+  min-height: 52px;
+  padding: 10px 18px;
+  border: 3px solid var(--line);
+  border-radius: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-weight: 900;
+  font-size: 1rem;
+  text-align: left;
+  box-shadow: inset -4px -4px 0 rgba(52, 38, 57, 0.12), 4px 4px 0 rgba(52, 38, 57, 0.22);
+  cursor: pointer;
+}
+
+.home-menu-btn:hover {
+  transform: translate(1px, 1px);
+  box-shadow: inset -3px -3px 0 rgba(52, 38, 57, 0.14), 3px 3px 0 rgba(52, 38, 57, 0.18);
+}
+
+.home-menu-btn--primary {
+  background: var(--mint);
+}
+
+.home-menu-btn--secondary {
+  background: var(--sakura-soft);
+}
+
+.home-menu-btn--knowledge {
+  background: #fefbd4;
+  border-color: #b8a02a;
+}
+
+.home-menu-btn--leaderboard {
+  background: #e8f0ff;
+  border-color: #4a6fa5;
+}
+
+.home-footer {
+  padding: 10px 16px;
+  border-top: 3px solid var(--line);
+  background: #fff2f8;
+  text-align: center;
+  font-size: 0.8rem;
+  color: #76586f;
+}
+
+.home-footer a {
+  color: var(--mint-dark);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+/* ── 通用 Modal (主頁用) ── */
+.home-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(52, 38, 57, 0.6);
+}
+
+.home-modal-overlay[hidden] {
+  display: none;
+}
+
+.home-modal-window {
+  width: 100%;
+  max-width: 420px;
+  max-height: 80dvh;
+  display: flex;
+  flex-direction: column;
+  border: 4px solid var(--line);
+  background: var(--paper);
+  box-shadow: 8px 8px 0 rgba(52, 38, 57, 0.32);
+  overflow: hidden;
+}
+
+.home-modal-titlebar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 6px 12px;
+  background: linear-gradient(90deg, var(--sakura), var(--mint));
+  border-bottom: 4px solid var(--line);
+  flex-shrink: 0;
+}
+
+.home-modal-title {
+  flex: 1;
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 900;
+}
+
+.home-modal-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  flex-shrink: 0;
+  border: 3px solid var(--line);
+  border-radius: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 0.85rem;
+  font-weight: 900;
+  box-shadow: inset -3px -3px 0 rgba(52, 38, 57, 0.18), 3px 3px 0 rgba(52, 38, 57, 0.28);
+  cursor: pointer;
+}
+
+.home-modal-body {
+  overflow-y: auto;
+  padding: 16px;
+  display: grid;
+  gap: 12px;
+}
+
+/* ── 知識卡 ── */
+.knowledge-day-group {
+  display: grid;
+  gap: 8px;
+}
+
+.knowledge-day-label {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 900;
+  color: var(--mint-dark);
+  text-transform: uppercase;
+  padding-bottom: 4px;
+  border-bottom: 2px solid var(--line);
+}
+
+.knowledge-card {
+  padding: 10px 12px;
+  border: 3px solid var(--line);
+  background: #fefbd4;
+  font-size: 0.92rem;
+  line-height: 1.65;
+}
+
+.knowledge-card--locked {
+  background: #f0f0f0;
+  color: #999;
+  font-style: italic;
+}
+
+/* ── 章節選擇 ── */
+.chapter-btn {
+  min-height: 52px;
+  padding: 10px 16px;
+  border: 3px solid var(--line);
+  border-radius: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-weight: 900;
+  font-size: 0.95rem;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: inset -4px -4px 0 rgba(52, 38, 57, 0.1), 4px 4px 0 rgba(52, 38, 57, 0.18);
+}
+
+.chapter-btn:hover {
+  transform: translate(1px, 1px);
+  box-shadow: inset -3px -3px 0 rgba(52, 38, 57, 0.12), 3px 3px 0 rgba(52, 38, 57, 0.14);
+}
+
+.chapter-btn--current {
+  background: #e8f7f0;
+  border-color: var(--mint-dark);
+}
+
+/* ── 排行榜 (主頁 Modal) ── */
+.leaderboard-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.leaderboard-table th,
+.leaderboard-table td {
+  padding: 8px 10px;
+  border: 2px solid var(--line);
+  font-size: 0.9rem;
+}
+
+.leaderboard-table th {
+  background: var(--sakura-soft);
+  font-weight: 900;
+  text-align: left;
+}
+
+.leaderboard-table tr:nth-child(even) td {
+  background: #fff8fb;
+}
+
+.leaderboard-loading {
+  text-align: center;
+  padding: 20px;
+  color: #76586f;
+  font-style: italic;
+}
+
+/* ── 知識卡天數選擇列表 ── */
+.knowledge-day-list {
+  display: grid;
+  gap: 10px;
+}
+
+.knowledge-day-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  min-height: 72px;
+  padding: 10px 12px;
+  border: 3px solid var(--line);
+  border-radius: 0;
+  background: var(--paper);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+  box-shadow: inset -4px -4px 0 rgba(52, 38, 57, 0.1), 4px 4px 0 rgba(52, 38, 57, 0.18);
+  overflow: hidden;
+}
+
+.knowledge-day-btn:hover:not(:disabled) {
+  transform: translate(1px, 1px);
+  box-shadow: inset -3px -3px 0 rgba(52, 38, 57, 0.12), 3px 3px 0 rgba(52, 38, 57, 0.14);
+}
+
+.knowledge-day-btn--locked {
+  background: #f5f5f5;
+  border-color: #b0a0b0;
+  color: #9a8a9a;
+  cursor: not-allowed;
+  box-shadow: inset -2px -2px 0 rgba(52, 38, 57, 0.06), 2px 2px 0 rgba(52, 38, 57, 0.1);
+}
+
+.knowledge-day-btn__info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.knowledge-day-btn__day-label {
+  font-size: 0.78rem;
+  font-weight: 900;
+  color: var(--mint-dark);
+  letter-spacing: 0.04em;
+}
+
+.knowledge-day-btn--locked .knowledge-day-btn__day-label {
+  color: #9a8a9a;
+}
+
+.knowledge-day-btn__chapter {
+  font-size: 0.92rem;
+  font-weight: 800;
+  line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.knowledge-day-btn__thumb {
+  flex-shrink: 0;
+  width: 48px;
+  height: 68px;
+  object-fit: contain;
+  object-position: top;
+  image-rendering: pixelated;
+}
+
+.knowledge-day-btn--locked .knowledge-day-btn__thumb {
+  filter: grayscale(1) opacity(0.45);
+}
+
+/* ── 知識卡第二層（返回列 + 標題） ── */
+.knowledge-day-cards-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 10px;
+  border-bottom: 3px solid var(--line);
+}
+
+.knowledge-back-btn {
+  flex-shrink: 0;
+  min-height: 34px;
+  padding: 6px 12px;
+  border: 3px solid var(--line);
+  border-radius: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-weight: 900;
+  font-size: 0.85rem;
+  cursor: pointer;
+  box-shadow: inset -3px -3px 0 rgba(52, 38, 57, 0.12), 3px 3px 0 rgba(52, 38, 57, 0.2);
+}
+
+.knowledge-back-btn:hover {
+  transform: translate(1px, 1px);
+  box-shadow: inset -2px -2px 0 rgba(52, 38, 57, 0.14), 2px 2px 0 rgba(52, 38, 57, 0.16);
+}
+
+.knowledge-day-cards-title {
+  font-size: 0.88rem;
+  font-weight: 900;
+  color: var(--mint-dark);
+  line-height: 1.3;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

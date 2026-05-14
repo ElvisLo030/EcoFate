@@ -59,6 +59,7 @@ function fmtDay(template: string, order: number): string {
         <div class="settings-body">
           <button class="settings-action-btn settings-action-btn--warning" id="settings-restart" type="button">{content.ui.settingsRestartButton}</button>
           <button class="settings-action-btn settings-action-btn--info" id="settings-help" type="button">{content.ui.settingsHelpButton}</button>
+          <button class="settings-action-btn settings-action-btn--home" id="settings-home" type="button">{content.ui.settingsHomeButton}</button>
         </div>
         <footer class="settings-footer">
           <p class="settings-copyright">
@@ -141,7 +142,7 @@ function fmtDay(template: string, order: number): string {
         <div class="main-grid">
           <SceneStage />
           <DialogBox />
-          <aside class="side-panel">
+          <aside class="side-panel" id="side-panel" hidden>
             <ChoiceList choiceAreaLabel={content.ui.choiceAreaLabel} />
             <Leaderboard
               resultTitle={content.ending.title}
@@ -152,7 +153,7 @@ function fmtDay(template: string, order: number): string {
           </aside>
         </div>
 
-        <footer class="footer-bar">
+        <footer class="footer-bar" id="footer-bar" hidden>
           <button class="pixel-button" id="next-stage-button" type="button" disabled>{content.ui.nextButton}</button>
         </footer>
       </div>

@@ -174,6 +174,7 @@ export interface StageContent {
     correct: string;
     wrong: string;
   };
+  knowledgePoint?: string;
 }
 
 export interface ChoiceContent {
