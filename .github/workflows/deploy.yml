@@ -39,6 +39,7 @@ jobs:
         env:
           PUBLIC_SITE_URL: https://game.elvislo.tw
           PUBLIC_BASE_PATH: /
+          PUBLIC_GA_ID: ${{ vars.PUBLIC_GA_ID }}
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
