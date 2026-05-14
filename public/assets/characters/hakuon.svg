@@ -1,25 +1,65 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 400" role="img" aria-labelledby="title desc">
-  <title id="title">Hakuon pixel portrait</title>
-  <desc id="desc">Violet pixel style character portrait.</desc>
-  <rect width="320" height="400" fill="none"/>
-  <g shape-rendering="crispEdges">
-    <rect x="114" y="30" width="92" height="28" fill="#4c456a"/>
-    <rect x="88" y="58" width="144" height="112" fill="#4c456a"/>
-    <rect x="110" y="82" width="100" height="92" fill="#ffe0ce"/>
-    <rect x="92" y="120" width="24" height="38" fill="#ffe0ce"/>
-    <rect x="204" y="120" width="24" height="38" fill="#ffe0ce"/>
-    <rect x="126" y="112" width="14" height="16" fill="#342639"/>
-    <rect x="180" y="112" width="14" height="16" fill="#342639"/>
-    <rect x="148" y="144" width="24" height="8" fill="#d95b76"/>
-    <rect x="106" y="184" width="108" height="70" fill="#b39be2"/>
-    <rect x="88" y="210" width="24" height="76" fill="#ffe0ce"/>
-    <rect x="208" y="210" width="24" height="76" fill="#ffe0ce"/>
-    <rect x="122" y="254" width="76" height="88" fill="#fff8fb"/>
-    <rect x="108" y="244" width="104" height="22" fill="#f0c85a"/>
-    <rect x="132" y="342" width="20" height="36" fill="#4c456a"/>
-    <rect x="168" y="342" width="20" height="36" fill="#4c456a"/>
-    <rect x="116" y="378" width="42" height="14" fill="#342639"/>
-    <rect x="162" y="378" width="42" height="14" fill="#342639"/>
-    <rect x="230" y="106" width="22" height="58" fill="#d8c9ff"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 20" width="320" height="400" shape-rendering="crispEdges">
+  <!-- 背景：透明去背，僅保留人物 -->
+
+  <!-- 頭髮：麥穗金黃色雙馬尾 (呼應麥香) -->
+  <g fill="#F2B035">
+    <rect x="5" y="2" width="6" height="1"/> <!-- 頭頂 -->
+    <rect x="4" y="3" width="8" height="2"/>
+    <rect x="3" y="5" width="10" height="3"/>
+    <!-- 左馬尾 -->
+    <rect x="2" y="7" width="2" height="4"/>
+    <rect x="1" y="9" width="1" height="3"/>
+    <!-- 右馬尾 -->
+    <rect x="12" y="7" width="2" height="4"/>
+    <rect x="14" y="9" width="1" height="3"/>
+  </g>
+
+  <!-- 髮飾：紅色點綴 (呼應包裝上的紅底元素) -->
+  <g fill="#C0392B">
+    <rect x="3" y="4" width="1" height="1"/>
+    <rect x="12" y="4" width="1" height="1"/>
+  </g>
+
+  <!-- 皮膚：粉嫩膚色 -->
+  <g fill="#FFE0C2">
+    <rect x="4" y="5" width="8" height="5"/> <!-- 臉部 -->
+    <rect x="7" y="10" width="2" height="1"/> <!-- 脖頸 -->
+    <rect x="5" y="16" width="2" height="3"/> <!-- 左腿 -->
+    <rect x="9" y="16" width="2" height="3"/> <!-- 右腿 -->
+    <rect x="3" y="13" width="1" height="2"/> <!-- 左手 -->
+    <rect x="12" y="13" width="1" height="2"/> <!-- 右手 -->
+  </g>
+
+  <!-- 眼睛：奶茶深棕色 -->
+  <g fill="#4A2311">
+    <rect x="5" y="7" width="2" height="1"/>
+    <rect x="9" y="7" width="2" height="1"/>
+  </g>
+
+  <!-- 衣服：經典橘色連衣裙 -->
+  <g fill="#E67E22">
+    <rect x="5" y="11" width="6" height="3"/> <!-- 上衣主體 -->
+    <rect x="4" y="14" width="8" height="2"/> <!-- 裙子展開 -->
+    <rect x="3" y="15" width="10" height="1"/> <!-- 裙襬最寬處 -->
+  </g>
+
+  <!-- 胸口裝飾：紅色緞帶領結 -->
+  <g fill="#C0392B">
+    <rect x="7" y="11" width="2" height="1"/> <!-- 領結中心 -->
+    <rect x="6" y="12" width="1" height="2"/> <!-- 左緞帶 -->
+    <rect x="9" y="12" width="1" height="2"/> <!-- 右緞帶 -->
+  </g>
+
+  <!-- 衣袖與裙襬邊緣：白色點綴 -->
+  <g fill="#FFFFFF">
+    <rect x="4" y="11" width="1" height="2"/> <!-- 左白袖 -->
+    <rect x="11" y="11" width="1" height="2"/> <!-- 右白袖 -->
+    <rect x="3" y="16" width="10" height="1"/> <!-- 裙底白邊 -->
+  </g>
+
+  <!-- 鞋子：奶茶深棕色皮鞋 -->
+  <g fill="#4A2311">
+    <rect x="4" y="19" width="3" height="1"/>
+    <rect x="9" y="19" width="3" height="1"/>
   </g>
 </svg>

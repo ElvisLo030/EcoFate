@@ -40,7 +40,8 @@ const refs = {
   resultGroupStats: getElement<HTMLElement>("result-group-stats"),
   resultHomeButton: getElement<HTMLButtonElement>("result-home-button"),
   sidePanel: getElement<HTMLElement>("side-panel"),
-  footerBar: getElement<HTMLElement>("footer-bar")
+  footerBar: getElement<HTMLElement>("footer-bar"),
+  statusStrip: getElement<HTMLElement>("status-strip")
 };
 
 // 監聽 choiceList 子元素變化，有內容時顯示 choice-area 與 side-panel
@@ -1342,6 +1343,7 @@ function renderResultReport(ending: EndingResultContent): void {
   const spTotal = Object.values(state.spScores).reduce((s, v) => s + v, 0);
   const completedAt = state.completedAt ?? Date.now();
 
+  refs.statusStrip.hidden = true;
   refs.resultPanel.hidden = false;
   refs.sidePanel.hidden = false;
   refs.nextButton.hidden = true;

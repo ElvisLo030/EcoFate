@@ -44,12 +44,12 @@ const CHARACTERS: Record<string, CharacterContent> = {
   kosumi: {
     displayName: "小澄",
     portrait: "assets/characters/kosumi.svg",
-    accent: "#f8a8c6",
+    accent: "#F0788C",
   },
   coco: {
     displayName: "可可",
     portrait: "assets/characters/coco.svg",
-    accent: "#7bdcb5",
+    accent: "#F4A460",
   },
   player: {
     displayName: "玩家",
@@ -59,22 +59,22 @@ const CHARACTERS: Record<string, CharacterContent> = {
   hakuon: {
     displayName: "箔音",
     portrait: "assets/characters/hakuon.svg",
-    accent: "#b39be2",
+    accent: "#F2B035",
   },
   ivy: {
     displayName: "艾薇",
     portrait: "assets/characters/ivy.svg",
-    accent: "#4bb991",
+    accent: "#F67280",
   },
   shino: {
     displayName: "紙乃",
     portrait: "assets/characters/shino.svg",
-    accent: "#f0c85a",
+    accent: "#4CAF50",
   },
   jinsui: {
     displayName: "金穗",
     portrait: "assets/characters/jin-sui.svg",
-    accent: "#f0c85a",
+    accent: "#FFD700",
   },
   yiyun: {
     displayName: "一雲",

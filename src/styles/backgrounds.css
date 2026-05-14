@@ -450,7 +450,8 @@ body {
 .result-panel[hidden],
 .toast-stack[hidden],
 .side-panel[hidden],
-.footer-bar[hidden] {
+.footer-bar[hidden],
+.status-strip[hidden] {
   display: none;
 }
 
