@@ -38,7 +38,7 @@ const CHARACTERS: Record<string, CharacterContent> = {
   },
   narration: {
     displayName: "旁白",
-    portrait: "assets/characters/system.svg",
+    portrait: "assets/characters/user.svg",
     accent: "#c8c8c8",
   },
   kosumi: {
@@ -53,7 +53,7 @@ const CHARACTERS: Record<string, CharacterContent> = {
   },
   player: {
     displayName: "玩家",
-    portrait: "assets/characters/system.svg",
+    portrait: "assets/characters/user.svg",
     accent: "#ffd6e1",
   },
   hakuon: {
