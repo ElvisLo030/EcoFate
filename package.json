@@ -15,7 +15,6 @@
     "@motionone/dom": "latest",
     "astro": "latest",
     "bad-words": "latest",
-    "firebase": "latest",
     "gsap": "latest"
   },
   "devDependencies": {

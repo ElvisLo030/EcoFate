@@ -1,5 +1,4 @@
 import { loadGameState, saveGameState, clearGameState } from "@/lib/game/storage";
-import { createLeaderboardService } from "@/lib/leaderboard/firebase";
 import type { GameContent, GameState, DayId, SpRouteContent } from "@/lib/game/types";
 
 // ──────────────────────────────────────────────
@@ -119,13 +118,6 @@ function renderMenu(state: GameState | null): void {
     knowledgeBtn.addEventListener("click", () => openKnowledgeModal(state!));
     menu.append(knowledgeBtn);
   }
-
-  // 排行榜（永遠顯示）
-  const lbBtn = document.createElement("button");
-  lbBtn.className = "home-menu-btn home-menu-btn--leaderboard";
-  setBtnIcon(lbBtn, "icon-trophy.svg", "排行榜");
-  lbBtn.addEventListener("click", openLeaderboardModal);
-  menu.append(lbBtn);
 
   // 開發團隊（永遠顯示）
   const teamBtn = document.createElement("button");
@@ -405,59 +397,6 @@ function jumpToSpRoute(state: GameState, sp: SpRouteContent): void {
   window.location.href = GAME_URL;
 }
 
-// 排行榜服務單例（避免重複初始化 Firebase）
-let _leaderboardService: ReturnType<typeof createLeaderboardService> | null = null;
-function getLeaderboardService() {
-  if (!_leaderboardService) _leaderboardService = createLeaderboardService();
-  return _leaderboardService;
-}
-
-// ──────────────────────────────────────────────
-// 排行榜 Modal
-// ──────────────────────────────────────────────
-async function openLeaderboardModal(): Promise<void> {
-  const modal = document.getElementById("leaderboard-modal");
-  if (!modal) return;
-
-  const listEl = document.getElementById("leaderboard-content");
-  if (!listEl) return;
-
-  modal.hidden = false;
-  listEl.innerHTML = '<p class="leaderboard-loading">載入中…</p>';
-
-  try {
-    const service = getLeaderboardService();
-    if (!service.enabled) {
-      listEl.innerHTML = '<p class="leaderboard-loading">排行榜功能尚未啟用。</p>';
-      return;
-    }
-
-    const entries = await service.fetchTopScores();
-    if (entries.length === 0) {
-      listEl.innerHTML = '<p class="leaderboard-loading">目前還沒有記錄，快去玩吧！</p>';
-      return;
-    }
-
-    const table = document.createElement("table");
-    table.className = "leaderboard-table";
-    table.innerHTML = `<thead><tr><th>#</th><th>玩家</th><th>積分</th></tr></thead>`;
-    const tbody = document.createElement("tbody");
-    entries.forEach((entry, idx) => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `<td>${idx + 1}</td><td>${escapeHtml(entry.playerName)}</td><td>${entry.score}</td>`;
-      tbody.append(tr);
-    });
-    table.append(tbody);
-    listEl.replaceChildren(table);
-  } catch {
-    listEl.innerHTML = '<p class="leaderboard-loading">排行榜載入失敗，請稍後再試。</p>';
-  }
-}
-
-function escapeHtml(text: string): string {
-  return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}
-
 // ──────────────────────────────────────────────
 // 開發團隊 Modal
 // ──────────────────────────────────────────────
@@ -567,5 +506,4 @@ renderMenu(state);
 
 setupModalClose("knowledge-modal", "knowledge-modal-close");
 setupModalClose("chapter-modal", "chapter-modal-close");
-setupModalClose("leaderboard-modal", "leaderboard-modal-close");
 setupModalClose("team-modal", "team-modal-close");

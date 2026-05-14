@@ -38,10 +38,7 @@ const refs = {
   resultTotal: getElement<HTMLElement>("result-total"),
   resultSp: getElement<HTMLElement>("result-sp"),
   resultGroupStats: getElement<HTMLElement>("result-group-stats"),
-  leaderboardForm: getElement<HTMLFormElement>("leaderboard-form"),
-  submitScoreButton: getElement<HTMLButtonElement>("submit-score-button"),
-  leaderboardStatus: getElement<HTMLElement>("leaderboard-status"),
-  leaderboardList: getElement<HTMLOListElement>("leaderboard-list"),
+  resultHomeButton: getElement<HTMLButtonElement>("result-home-button"),
   sidePanel: getElement<HTMLElement>("side-panel"),
   footerBar: getElement<HTMLElement>("footer-bar")
 };
@@ -351,10 +348,9 @@ refs.dialogBox.addEventListener("click", () => {
   }
 });
 
-refs.leaderboardForm.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  refs.leaderboardStatus.textContent = "排行榜功能已保留，尚未開放送出。";
-  refs.submitScoreButton.disabled = true;
+refs.resultHomeButton.addEventListener("click", () => {
+  if (state) saveGameState(state);
+  window.location.href = BASE_URL;
 });
 
 render();
@@ -624,7 +620,7 @@ function renderDayIntroNameInput(intro: NameDayIntroContent): void {
 
   const errorP = document.createElement("p");
   errorP.id = "name-error";
-  errorP.className = "leaderboard-note";
+  errorP.className = "form-note";
   errorP.setAttribute("aria-live", "polite");
   refs.choiceList.append(input, errorP);
   input.focus();
@@ -1145,7 +1141,7 @@ function renderBeforeStart(): void {
   });
   const errorP = document.createElement("p");
   errorP.id = "name-error";
-  errorP.className = "leaderboard-note";
+  errorP.className = "form-note";
   errorP.setAttribute("aria-live", "polite");
   refs.choiceList.append(input, errorP);
 
@@ -1369,10 +1365,8 @@ function renderResultReport(ending: EndingResultContent): void {
   refs.resultTotal.textContent = `${state.totalScore} / ${content.points.totalMax}`;
   refs.resultSp.textContent = `${spTotal} / ${content.points.spMax}`;
   renderGroupStats();
-  refs.submitScoreButton.textContent = content.ui.submitScoreButton;
-  refs.submitScoreButton.disabled = true;
-  refs.leaderboardStatus.textContent = "排行榜功能已保留，尚未開放送出。";
-  refs.leaderboardList.replaceChildren();
+  refs.resultHomeButton.textContent = content.ui.returnHomeButton;
+  refs.resultHomeButton.disabled = false;
 }
 
 function getCurrentEnding(): EndingResultContent {

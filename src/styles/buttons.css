@@ -1,0 +1,419 @@
+/* 按鈕、輸入框、圖示與互動狀態 */
+.settings-close-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  flex-shrink: 0;
+  border: 3px solid var(--line);
+  border-radius: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 0.85rem;
+  font-weight: 900;
+  box-shadow: var(--shadow-button-compact);
+}
+
+.settings-close-btn:hover {
+  transform: translate(1px, 1px);
+  box-shadow: var(--shadow-button-compact-hover);
+}
+
+.settings-action-btn {
+  display: flex;
+  align-items: center;
+  min-height: 46px;
+  padding: 10px 16px;
+  border: 3px solid var(--line);
+  border-radius: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-weight: 900;
+  font-size: 0.95rem;
+  text-align: left;
+  box-shadow: var(--shadow-button-soft);
+}
+
+.settings-action-btn:hover {
+  transform: translate(1px, 1px);
+  box-shadow: var(--shadow-button-soft-hover);
+}
+
+.settings-action-btn--warning {
+  background: var(--sakura-soft);
+  border-color: var(--danger);
+}
+
+.settings-action-btn--info {
+  background: #e8f7f0;
+  border-color: var(--mint-dark);
+}
+
+.welcome-confirm-btn {
+  justify-self: end;
+  min-height: 42px;
+  padding: 8px 18px;
+  border: 3px solid var(--line);
+  border-radius: 0;
+  background: var(--mint);
+  color: var(--ink);
+  font-weight: 900;
+  font-size: 0.95rem;
+  box-shadow: var(--shadow-button-strong);
+  cursor: pointer;
+}
+
+.welcome-confirm-btn:hover {
+  transform: translate(1px, 1px);
+  box-shadow: var(--shadow-button-strong-hover);
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+.settings-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  flex-shrink: 0;
+  border: 3px solid var(--line);
+  border-radius: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 1.1rem;
+  line-height: 1;
+  box-shadow: var(--shadow-button-compact);
+}
+
+.settings-button:hover {
+  transform: translate(1px, 1px);
+  box-shadow: var(--shadow-button-compact-hover);
+}
+
+.text-input {
+  min-width: 0;
+  padding: 10px 12px;
+  border: 3px solid var(--line);
+  border-radius: 0;
+  background: #fff;
+  box-shadow: inset 4px 4px 0 rgba(52, 38, 57, 0.1);
+}
+
+.pixel-button {
+  min-height: 42px;
+  padding: 8px 14px;
+  border: 3px solid var(--line);
+  border-radius: 0;
+  background: var(--mint);
+  color: var(--ink);
+  font-weight: 900;
+  box-shadow: var(--shadow-button-strong);
+}
+
+.pixel-button:hover:not(:disabled),
+.choice-button:hover:not(:disabled) {
+  transform: translate(1px, 1px);
+  box-shadow: var(--shadow-button-strong-hover);
+}
+
+.pixel-button:disabled {
+  opacity: 0.58;
+}
+
+.choice-button {
+  min-height: 52px;
+  padding: 10px 12px;
+  border: 3px solid var(--line);
+  border-radius: 0;
+  background: #fff;
+  text-align: left;
+  font-weight: 800;
+  line-height: 1.45;
+  box-shadow: inset -4px -4px 0 rgba(52, 38, 57, 0.08), 4px 4px 0 rgba(52, 38, 57, 0.15);
+}
+
+.choice-button.is-pending {
+  background: #e8d5ff;
+  border-color: var(--violet);
+  box-shadow: inset -4px -4px 0 rgba(139, 111, 184, 0.15), 4px 4px 0 rgba(52, 38, 57, 0.2);
+}
+
+.choice-button.is-correct {
+  background: #c9f5df;
+}
+
+.choice-button.is-wrong {
+  background: #ffd6e1;
+}
+
+/* ── 設定面板：返回主頁按鈕 ── */
+.settings-action-btn--home {
+  background: #e8f0ff;
+  border-color: #4a6fa5;
+}
+
+.home-menu-btn {
+  display: flex;
+  align-items: center;
+  min-height: 52px;
+  padding: 10px 18px;
+  border: 3px solid var(--line);
+  border-radius: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-weight: 900;
+  font-size: 1rem;
+  text-align: left;
+  box-shadow: var(--shadow-button-soft);
+  cursor: pointer;
+}
+
+.home-menu-btn:hover {
+  transform: translate(1px, 1px);
+  box-shadow: var(--shadow-button-soft-hover);
+}
+
+.home-menu-btn--primary {
+  background: var(--mint);
+}
+
+.home-menu-btn--secondary {
+  background: var(--sakura-soft);
+}
+
+.home-menu-btn--knowledge {
+  background: #fefbd4;
+  border-color: #b8a02a;
+}
+
+.home-menu-btn--team {
+  background: #f0ebe8;
+  border-color: #8b6e5a;
+}
+
+/* 按鈕內像素風圖示：flex child，由父容器 align-items: center 控制垂直對齊 */
+.menu-btn-icon {
+  display: block;
+  width: 20px;
+  height: 20px;
+  margin-right: 8px;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  flex-shrink: 0;
+}
+
+/* 設定齒輪按鈕圖示（遊戲頁右上角，父容器已是 flex） */
+.settings-btn-icon {
+  display: block;
+  width: 18px;
+  height: 18px;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* Modal 標題列圖示（h2 內，父 h2 已改為 flex） */
+.modal-title-icon {
+  display: block;
+  width: 18px;
+  height: 18px;
+  margin-right: 6px;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  flex-shrink: 0;
+}
+
+/* 知識卡鎖定圖示（flex child，由父容器對齊） */
+.knowledge-lock-icon {
+  display: block;
+  width: 14px;
+  height: 14px;
+  margin-right: 4px;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  flex-shrink: 0;
+}
+
+.home-modal-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  flex-shrink: 0;
+  border: 3px solid var(--line);
+  border-radius: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 0.85rem;
+  font-weight: 900;
+  box-shadow: var(--shadow-button-compact);
+  cursor: pointer;
+}
+
+/* ── 章節選擇 ── */
+.chapter-btn {
+  min-height: 52px;
+  padding: 10px 16px;
+  border: 3px solid var(--line);
+  border-radius: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-weight: 900;
+  font-size: 0.95rem;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: var(--shadow-button-flat);
+}
+
+.chapter-btn:hover {
+  transform: translate(1px, 1px);
+  box-shadow: var(--shadow-button-flat-hover);
+}
+
+.chapter-btn--current {
+  background: #e8f7f0;
+  border-color: var(--mint-dark);
+}
+
+.chapter-btn--sp {
+  background: #fff5f8;
+  border-color: var(--sakura);
+}
+
+.knowledge-day-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 72px;
+  /* 右側留空間給斜露的角色頭部 */
+  padding: 10px 60px 10px 12px;
+  border: 3px solid var(--line);
+  border-radius: 0;
+  background: var(--paper);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+  box-shadow: var(--shadow-button-flat);
+  overflow: hidden;
+}
+
+.knowledge-day-btn:hover:not(:disabled) {
+  transform: translate(1px, 1px);
+  box-shadow: var(--shadow-button-flat-hover);
+}
+
+.knowledge-day-btn--locked {
+  background: #f5f5f5;
+  border-color: #b0a0b0;
+  color: #9a8a9a;
+  cursor: not-allowed;
+  box-shadow: inset -2px -2px 0 rgba(52, 38, 57, 0.06), 2px 2px 0 rgba(52, 38, 57, 0.1);
+}
+
+.knowledge-day-btn__info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.knowledge-day-btn__day-label {
+  display: flex;
+  align-items: center;
+  font-size: 0.78rem;
+  font-weight: 900;
+  color: var(--mint-dark);
+  letter-spacing: 0.04em;
+}
+
+.knowledge-day-btn--locked .knowledge-day-btn__day-label {
+  color: #9a8a9a;
+}
+
+.knowledge-day-btn__chapter {
+  font-size: 0.92rem;
+  font-weight: 800;
+  line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.knowledge-day-btn__thumb {
+  position: absolute;
+  /* 圖片大部分沉到按鈕底部外，只讓頭部從底部右角露出 */
+  bottom: -50px;
+  right: -42px;
+  width: 100px;
+  height: 120px;
+  object-fit: contain;
+  object-position: top;
+  image-rendering: pixelated;
+  /* 以底部中心為軸微微逆時針傾斜，產生從右下角探出的感覺 */
+  transform: rotate(-15deg);
+  transform-origin: bottom center;
+}
+
+.knowledge-day-btn--locked .knowledge-day-btn__thumb {
+  filter: grayscale(1) opacity(0.45);
+}
+
+.knowledge-back-btn {
+  flex-shrink: 0;
+  min-height: 34px;
+  padding: 6px 12px;
+  border: 3px solid var(--line);
+  border-radius: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-weight: 900;
+  font-size: 0.85rem;
+  cursor: pointer;
+  box-shadow: var(--shadow-button-small);
+}
+
+.knowledge-back-btn:hover {
+  transform: translate(1px, 1px);
+  box-shadow: var(--shadow-button-small-hover);
+}
+
+@media (max-width: 860px) {
+  .status-strip,
+  .name-row,
+  .report-identity,
+  .result-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .scene-header {
+    display: grid;
+  }
+
+  .scene-score {
+    min-width: 0;
+    text-align: left;
+  }
+
+  .footer-bar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

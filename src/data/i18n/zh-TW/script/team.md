@@ -9,14 +9,14 @@
 
 ## 劇本創作
 
-- 莊莊
+- Spoon
 - Gemini
 
 ## 視覺 / 角色設計
 
-- Claude
-- Gemini
+- Spoon
 - [小羅](https://elvislo.tw)
+- Gemini
 
 ## 報告 / 海報製作
 

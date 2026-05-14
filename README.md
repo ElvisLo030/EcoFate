@@ -10,8 +10,6 @@
 - i18n JSON 劇情資料，目前實作 `zh-TW`
 - Motion One 立繪互動動畫
 - GSAP 對話框打字機效果
-- Firebase Firestore 排行榜
-- Firebase App Check 搭配 reCAPTCHA v3
 - `bad-words` 暱稱過濾
 
 ## 遊戲內容
@@ -21,7 +19,7 @@
 - 環保積分同時作為好感度，用於顯示綠葉轉愛心的像素進度條。
 - 遊戲狀態儲存在瀏覽器 `localStorage`，並加入 Base64 與時間戳混淆。
 - D1+D2 達 150 分以上進入 Good Ending，否則進入 Bad Ending。
-- 完成後可送出玩家暱稱與總分到 Firestore 排行榜。
+- 完成後會顯示結算報告，玩家可回到主畫面重新開始或選擇章節。
 
 ## 專案結構
 
@@ -32,14 +30,11 @@
 ├── src/components/                # AVG 介面元件
 ├── src/data/i18n/zh-TW/game.json  # 遊戲劇情、選項、配分與支線條件
 ├── src/lib/game/                  # 遊戲型別、流程引擎與儲存邏輯
-├── src/lib/leaderboard/           # Firebase 排行榜服務
 ├── src/lib/security/              # 暱稱過濾
 ├── src/pages/index.astro          # 主要頁面入口
 ├── src/scripts/game.ts            # 客戶端遊戲互動
 ├── src/styles/global.css          # 全域像素風 UI
-├── astro.config.mjs               # Astro 靜態輸出設定
-├── firebase.json                  # Firebase 設定
-└── firestore.rules                # Firestore 安全規則
+└── astro.config.mjs               # Astro 靜態輸出設定
 ```
 
 ## 開發環境
@@ -69,40 +64,6 @@ pnpm preview
 - `pnpm run build`：先執行 Astro check，再產生 `dist/` 靜態輸出。
 - `pnpm preview`：預覽已建置的靜態成果。
 
-## 環境變數
-
-複製 `.env.example` 為 `.env`，並填入 Firebase 與 reCAPTCHA v3 公開設定。
-
-```bash
-PUBLIC_FIREBASE_API_KEY=
-PUBLIC_FIREBASE_AUTH_DOMAIN=
-PUBLIC_FIREBASE_PROJECT_ID=
-PUBLIC_FIREBASE_APP_ID=
-PUBLIC_RECAPTCHA_V3_SITE_KEY=
-```
-
-若未設定 Firebase 相關環境變數，遊戲仍可在本機執行，但排行榜會停用。
-
-Astro 部署到 GitHub Pages 時，可依實際網址設定：
-
-```bash
-PUBLIC_SITE_URL=https://<github-user>.github.io
-PUBLIC_BASE_PATH=/Hackathon/
-```
-
-若部署在網域根目錄，`PUBLIC_BASE_PATH` 可維持預設 `/`。
-
-## Firebase 設定
-
-Firestore 使用 `leaderboard` collection 儲存排行榜資料。`firestore.rules` 目前允許公開讀取、只允許新增資料，並限制：
-
-- `playerName` 必須是 1 到 16 字元的字串。
-- `score` 必須是 0 到 200 的整數。
-- `createdAt` 必須等於伺服器請求時間。
-- 禁止更新與刪除排行榜資料。
-
-正式啟用排行榜前，請在 Firebase Console 啟用 Firestore、設定 App Check，並將 reCAPTCHA v3 site key 填入 `.env`。
-
 ## 修改劇情內容
 
 主要劇情集中在 `src/data/i18n/zh-TW/game.json`。新增或調整內容後，建議至少執行：
@@ -117,4 +78,4 @@ pnpm run check
 
 ## 部署
 
-專案採 Astro 靜態輸出，`pnpm run build` 會產生 `dist/`。部署到 GitHub Pages 前，請先確認 `PUBLIC_SITE_URL` 與 `PUBLIC_BASE_PATH` 是否符合實際 repository page 路徑。
+專案採 Astro 靜態輸出，`pnpm run build` 會產生 `dist/`。目前不需要額外環境變數。

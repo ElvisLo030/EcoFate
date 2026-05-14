@@ -3,9 +3,8 @@ interface Props {
   resultTitle: string;
   totalMax: number;
   spMax: number;
-  submitButtonText: string;
 }
-const { resultTitle, totalMax, spMax, submitButtonText } = Astro.props;
+const { resultTitle, totalMax, spMax } = Astro.props;
 ---
 
 <section class="result-panel" id="result-panel" hidden aria-labelledby="result-title">
@@ -42,10 +41,7 @@ const { resultTitle, totalMax, spMax, submitButtonText } = Astro.props;
     <h3>分組統計</h3>
     <div class="group-stat-list" id="result-group-stats"></div>
   </section>
-  <form class="leaderboard-form leaderboard-form--reserved" id="leaderboard-form">
-    <span class="report-kicker">排行榜預留</span>
-    <button class="pixel-button" type="submit" id="submit-score-button" disabled>{submitButtonText}</button>
-    <p class="leaderboard-note" id="leaderboard-status"></p>
-  </form>
-  <ol class="leaderboard-list" id="leaderboard-list"></ol>
+  <div class="result-actions">
+    <button class="pixel-button" type="button" id="result-home-button">回到主畫面</button>
+  </div>
 </section>

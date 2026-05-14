@@ -1,0 +1,453 @@
+/* 文字、標題、資料與內容呈現 */
+.settings-titlebar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 6px 12px;
+  background: linear-gradient(90deg, var(--sakura), var(--mint));
+  border-bottom: 4px solid var(--line);
+}
+
+.settings-title {
+  flex: 1;
+  font-weight: 900;
+  font-size: 0.95rem;
+}
+
+.settings-copyright {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #76586f;
+}
+
+.settings-link {
+  color: var(--mint-dark);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.settings-link:hover {
+  text-decoration: underline;
+}
+
+.welcome-title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 900;
+  padding-bottom: 10px;
+  border-bottom: 3px solid var(--line);
+}
+
+.device-overlay__msg {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 900;
+  line-height: 1.5;
+}
+
+.title-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 48px;
+  padding: 8px 12px;
+  background: linear-gradient(90deg, var(--sakura), var(--mint));
+  border-bottom: 4px solid var(--line);
+}
+
+.title-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.brand {
+  margin: 0;
+  font-size: clamp(1rem, 2vw, 1.35rem);
+  line-height: 1.2;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: #76586f;
+}
+
+.stat-value {
+  font-weight: 800;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.progress-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-weight: 800;
+}
+
+.scene-label {
+  display: grid;
+  gap: 2px;
+}
+
+.scene-kicker {
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: var(--mint-dark);
+  text-transform: uppercase;
+}
+
+.scene-title {
+  margin: 0;
+  font-size: clamp(1.1rem, 2vw, 1.55rem);
+}
+
+.scene-score {
+  min-width: 112px;
+  text-align: right;
+  font-weight: 900;
+}
+
+.speaker {
+  display: inline-flex;
+  width: fit-content;
+  padding: 4px 10px;
+  border: 3px solid var(--line);
+  background: var(--sakura-soft);
+  font-weight: 900;
+}
+
+.dialog-text {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  margin: 0;
+  font-size: 1.02rem;
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+
+.dialog-text::after {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 1.1em;
+  margin-left: 2px;
+  background: var(--mint-dark);
+  vertical-align: -0.18em;
+  animation: blink 0.9s step-end infinite;
+}
+
+.dialog-text.is-finished::after {
+  display: none;
+}
+
+.dialog-continue {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--mint-dark);
+  animation: blink 1.2s step-end infinite;
+  cursor: pointer;
+}
+
+.dialog-continue[hidden] {
+  display: none;
+}
+
+.situation {
+  margin: 0;
+  line-height: 1.65;
+  font-weight: 700;
+}
+
+.feedback-title {
+  margin: 0;
+  font-weight: 900;
+}
+
+.feedback-text {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.route-lock {
+  font-weight: 800;
+  color: #6d526b;
+}
+
+.toast-message {
+  padding: 10px 12px;
+  border: 3px solid var(--line);
+  background: #d9fff0;
+  font-weight: 800;
+}
+
+.report-header {
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+  border: 3px solid var(--line);
+  background: linear-gradient(180deg, #fff8fb 0%, #edfff8 100%);
+  box-shadow: inset -4px -4px 0 rgba(52, 38, 57, 0.08);
+}
+
+.report-kicker {
+  color: #6d526b;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0;
+}
+
+.report-header p {
+  margin: 0;
+  color: #5f465c;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  white-space: pre-line;
+}
+
+.report-identity {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.group-stat-list {
+  display: grid;
+  gap: 8px;
+}
+
+.group-stat-name,
+.group-stat-value {
+  font-weight: 900;
+}
+
+.group-stat-name {
+  text-align: center;
+}
+
+.group-stat-value {
+  text-align: center;
+}
+
+.form-note {
+  margin: 0;
+  color: #76586f;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.day-transition-titlebar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 4px 10px;
+  background: linear-gradient(90deg, var(--sakura), var(--mint));
+  border-bottom: 4px solid var(--line);
+}
+
+.day-transition-label {
+  margin: 0;
+  font-size: clamp(2rem, 9vw, 3.5rem);
+  font-weight: 900;
+  color: var(--ink);
+  letter-spacing: 0.15em;
+  /* 8-bit 硬邊陰影，模擬像素文字立體感 */
+  text-shadow:
+    4px 0 0 var(--sakura),
+    0 4px 0 var(--sakura),
+    4px 4px 0 rgba(52, 38, 57, 0.25);
+  opacity: 0;
+}
+
+.home-title-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 6px 12px;
+  background: linear-gradient(90deg, var(--sakura), var(--mint));
+  border-bottom: 4px solid var(--line);
+}
+
+.home-brand {
+  flex: 1;
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 900;
+}
+
+.pixel-title-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding-bottom: 8px;
+}
+
+.pixel-title-badge {
+  margin: 0;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.58rem;
+  color: var(--mint-dark);
+  letter-spacing: 0.08em;
+  opacity: 0.9;
+}
+
+.pixel-game-title {
+  margin: 0;
+  font-size: clamp(1.8rem, 7vw, 2.5rem);
+  font-weight: 900;
+  text-align: center;
+  line-height: 1.25;
+  letter-spacing: 0.06em;
+  /* 像素塊陰影：右側粉紅、下側薄荷，再加深色主陰影 */
+  text-shadow:
+    4px 0 0 var(--sakura),
+    -2px 0 0 var(--sakura),
+    0 4px 0 var(--mint),
+    4px 4px 0 rgba(52, 38, 57, 0.28),
+    8px 8px 0 rgba(52, 38, 57, 0.1);
+}
+
+/* ── 開發團隊 Modal 內容 ── */
+.team-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.team-main-title {
+  margin: 0 0 4px;
+  font-size: 1rem;
+  font-weight: 900;
+  border-bottom: 3px solid var(--line);
+  padding-bottom: 6px;
+}
+
+.team-section-title {
+  margin: 10px 0 2px;
+  font-size: 0.88rem;
+  font-weight: 900;
+  color: var(--mint-dark);
+}
+
+.team-list {
+  margin: 0;
+  padding-left: 1.4em;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.92rem;
+}
+
+.team-desc {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.65;
+  color: #5a4860;
+}
+
+.team-content hr {
+  border: none;
+  border-top: 2px solid var(--line);
+  margin: 8px 0 4px;
+  opacity: 0.4;
+}
+
+.team-link {
+  color: var(--mint-dark);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.team-link:hover {
+  text-decoration: underline;
+}
+
+.home-footer {
+  padding: 10px 16px;
+  border-top: 3px solid var(--line);
+  background: #fff2f8;
+  text-align: center;
+  font-size: 0.8rem;
+  color: #76586f;
+}
+
+.home-footer a {
+  color: var(--mint-dark);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.home-modal-titlebar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 6px 12px;
+  background: linear-gradient(90deg, var(--sakura), var(--mint));
+  border-bottom: 4px solid var(--line);
+  flex-shrink: 0;
+}
+
+.home-modal-title {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 900;
+}
+
+.knowledge-day-label {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 900;
+  color: var(--mint-dark);
+  text-transform: uppercase;
+  padding-bottom: 4px;
+  border-bottom: 2px solid var(--line);
+}
+
+.knowledge-card {
+  padding: 10px 12px;
+  border: 3px solid var(--line);
+  background: #fefbd4;
+  font-size: 0.92rem;
+  line-height: 1.65;
+}
+
+.knowledge-card--locked {
+  display: flex;
+  align-items: center;
+  background: #f0f0f0;
+  color: #999;
+  font-style: italic;
+}
+
+/* ── 知識卡天數選擇列表 ── */
+.knowledge-day-list {
+  display: grid;
+  gap: 10px;
+}
+
+.knowledge-day-cards-title {
+  font-size: 0.88rem;
+  font-weight: 900;
+  color: var(--mint-dark);
+  line-height: 1.3;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

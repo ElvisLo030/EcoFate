@@ -6,7 +6,7 @@
 # 按鈕文字
 nextButton: 下一步
 finishButton: 查看成果
-submitScoreButton: 送出排行榜
+returnHomeButton: 回到主畫面
 continueButton: 下一步
 enterGameButton: 進入遊戲
 startButton: 開始 Day 1
@@ -36,7 +36,7 @@ namePlaceholder: 文本文本文本
 # 錯誤訊息
 nameErrorEmpty: 請輸入玩家名稱。
 nameErrorTooLong: "玩家名稱最多 {maxLength} 個字。"
-nameErrorProfane: 玩家名稱含有不適合公開排行榜的文字。
+nameErrorProfane: 玩家名稱含有不適合的文字。
 
 # 進度條
 progressBarLabel: 環保積分進度
@@ -49,12 +49,6 @@ settingsHomeButton: "返回主頁"
 settingsRestartConfirm: 確定要從頭開始遊戲嗎？目前進度將會清除。
 settingsHomeConfirm: 是否儲存目前遊玩進度？
 settingsCopyrightText: All rights reserved.
-
-# 排行榜
-submitScoreLoading: 送出中...
-submitScoreSuccess: 排行榜已送出。
-submitScoreError: 排行榜送出失敗。
-leaderboardUnavailable: 尚未設定 Firebase 環境變數，排行榜會在部署設定完成後啟用。
 
 # 對話框
 dialogContinueText: "▼ 點擊對話框繼續"

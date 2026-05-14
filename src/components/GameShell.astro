@@ -2,8 +2,8 @@
 import { ClientRouter } from "astro:transitions";
 import ChoiceList from "@/components/ChoiceList.astro";
 import DialogBox from "@/components/DialogBox.astro";
-import Leaderboard from "@/components/Leaderboard.astro";
 import PixelProgress from "@/components/PixelProgress.astro";
+import ResultReport from "@/components/ResultReport.astro";
 import SceneStage from "@/components/SceneStage.astro";
 import { validateSequentialContent } from "@/lib/game/engine";
 import type { GameContent } from "@/lib/game/types";
@@ -156,11 +156,10 @@ function fmtDay(template: string, order: number): string {
           <DialogBox />
           <aside class="side-panel" id="side-panel" hidden>
             <ChoiceList choiceAreaLabel={content.ui.choiceAreaLabel} />
-            <Leaderboard
+            <ResultReport
               resultTitle={content.ending.title}
               totalMax={content.points.totalMax}
               spMax={content.points.spMax}
-              submitButtonText={content.ui.submitScoreButton}
             />
           </aside>
         </div>
