@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 180" width="160" height="180" shape-rendering="crispEdges">
   
   <!-- 1. 銀白髮色 (三無少女標配，後髮底色) -->
-  <g fill="#F8FAFC">
+  <g fill="#94A3B8">
     <rect x="50" y="20" width="60" height="10" />
     <rect x="40" y="30" width="80" height="20" />
   </g>
@@ -32,8 +32,8 @@
     <rect x="100" y="80" width="15" height="5" />
   </g>
 
-  <!-- 5. 姬髮式瀏海 (Hime Cut，銀白色) -->
-  <g fill="#F1F5F9">
+  <!-- 5. 姬髮式瀏海 (Hime Cut，銀灰色) -->
+  <g fill="#B0BEC5">
     <rect x="45" y="40" width="70" height="10" /> <!-- 齊瀏海 -->
     <rect x="35" y="40" width="10" height="55" /> <!-- 左側鬢角長髮 -->
     <rect x="115" y="40" width="10" height="55" /> <!-- 右側鬢角長髮 -->
