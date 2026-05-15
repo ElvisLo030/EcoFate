@@ -1,4 +1,64 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
+
+async function installD1FirstStageSave(page: Page): Promise<void> {
+  await page.addInitScript(() => {
+    const now = Date.now();
+    const state = {
+      playerName: "111",
+      currentDayIndex: 0,
+      currentStageIndex: 0,
+      dayScores: { day1: 0, day2: 0, day3: 0, day4: 0, day5: 0 },
+      spScores: { sp1: 0, sp2: 0 },
+      totalScore: 0,
+      answeredStageIds: [],
+      selectedAnswers: {},
+      pendingSpRouteId: null,
+      currentSpRouteId: null,
+      currentSpStageIndex: 0,
+      completedIntros: ["day1"],
+      completedOutros: [],
+      completedSpRouteIntros: [],
+      completedSpRoutes: [],
+      toBeContinued: false,
+      completed: false,
+      completedEnding: false,
+      completedEpilogue: false,
+      startedAt: now,
+      completedAt: null,
+      savedAt: now
+    };
+    const spScore = Object.values(state.spScores).join(",");
+    const routeState = [
+      state.pendingSpRouteId ?? "",
+      state.currentSpRouteId ?? "",
+      state.currentSpStageIndex ?? 0,
+      state.toBeContinued ? "tbc" : "",
+      state.completedEnding ? "ending" : "",
+      state.completedEpilogue ? "epilogue" : "",
+      state.startedAt ?? "",
+      state.completedAt ?? ""
+    ].join(",");
+    const source = `${state.playerName}|${state.totalScore}|${spScore}|${state.answeredStageIds.join(",")}|${routeState}|${state.savedAt}`;
+    const checksum = btoa(encodeURIComponent(source)).slice(0, 24);
+    localStorage.setItem("hackathon-esg-avg-save-v2", btoa(encodeURIComponent(JSON.stringify({ state, checksum }))));
+  });
+}
+
+async function revealChoices(page: Page): Promise<void> {
+  for (let i = 0; i < 10; i += 1) {
+    await page.locator("#dialog-text.is-finished").waitFor({ timeout: 10000 });
+    if (await page.locator(".choice-button").count() >= 4) return;
+    await page.locator("#dialog-box").click({ force: true });
+  }
+}
+
+async function revealChoicesWithEnter(page: Page): Promise<void> {
+  for (let i = 0; i < 10; i += 1) {
+    await page.locator("#dialog-text.is-finished").waitFor({ timeout: 10000 });
+    if (await page.locator(".choice-button").count() >= 4) return;
+    await page.keyboard.press("Enter");
+  }
+}
 
 test.describe("桌機版遊戲介面", () => {
   test.beforeEach(async ({ page }) => {
@@ -62,5 +122,53 @@ test.describe("桌機版遊戲介面", () => {
       caret: "hide",
       maxDiffPixelRatio: 0.02,
     });
+  });
+
+  test("矮桌機 viewport 的四個選項維持在可捲動且可點擊區域內", async ({ page }) => {
+    await page.setViewportSize({ width: 1240, height: 614 });
+    await installD1FirstStageSave(page);
+    await page.goto("/game/");
+    await revealChoices(page);
+
+    const layout = await page.evaluate(() => {
+      const main = document.querySelector(".main-grid")!.getBoundingClientRect();
+      const side = document.querySelector("#side-panel")!.getBoundingClientRect();
+      const choiceArea = document.querySelector("#choice-area") as HTMLElement;
+      const lastChoice = document.querySelector(".choice-button:last-child")!.getBoundingClientRect();
+
+      return {
+        mainBottom: main.bottom,
+        sideBottom: side.bottom,
+        choiceClientHeight: choiceArea.clientHeight,
+        choiceScrollHeight: choiceArea.scrollHeight,
+        lastChoiceBottom: lastChoice.bottom
+      };
+    });
+
+    expect(layout.sideBottom).toBeLessThanOrEqual(layout.mainBottom + 1);
+    expect(layout.choiceScrollHeight).toBeGreaterThan(layout.choiceClientHeight);
+
+    const lastChoice = page.locator(".choice-button").last();
+    await lastChoice.scrollIntoViewIfNeeded();
+    await expect(lastChoice).toBeInViewport();
+    await lastChoice.click();
+    await expect(lastChoice).toHaveClass(/is-pending/);
+  });
+
+  test("桌機 Enter 鍵可以推進對話並確認已選選項", async ({ page }) => {
+    await installD1FirstStageSave(page);
+    await page.goto("/game/");
+    await revealChoicesWithEnter(page);
+
+    await expect(page.locator(".choice-button")).toHaveCount(4);
+
+    const firstChoice = page.locator(".choice-button").first();
+    await firstChoice.click();
+    await expect(firstChoice).toHaveClass(/is-pending/);
+
+    await page.keyboard.press("Enter");
+    await expect(page.locator(".choice-button").first()).toBeDisabled();
+    await expect(page.locator("#next-stage-button")).toBeDisabled();
+    await expect(page.locator("#dialog-text")).not.toHaveText("你今天有帶水壺嗎？");
   });
 });

@@ -314,8 +314,20 @@ refs.nextButton.addEventListener("click", () => {
   render();
 });
 
-// 點擊對話框：跳過打字機或推進分段
-refs.dialogBox.addEventListener("click", () => {
+refs.dialogBox.addEventListener("click", advanceDialogInteraction);
+
+document.addEventListener("keydown", (event) => {
+  if (!shouldHandleEnterAdvance(event)) {
+    return;
+  }
+
+  if (advanceByEnterKey()) {
+    event.preventDefault();
+  }
+});
+
+// 點擊對話框或桌機 Enter：跳過打字機、推進分段，或接續可用的下一步流程
+function advanceDialogInteraction(): void {
   // 回應對話後首次點擊：隱藏 side-panel
   if (hideSidePanelOnNextDialogClick) {
     hideSidePanelOnNextDialogClick = false;
@@ -346,7 +358,69 @@ refs.dialogBox.addEventListener("click", () => {
     refs.dialogContinue.hidden = true;
     playNextSegment();
   }
-});
+}
+
+function advanceByEnterKey(): boolean {
+  if (refs.dialogBox.hidden) {
+    return false;
+  }
+
+  if (currentTween?.isActive() || isDialogPaused) {
+    advanceDialogInteraction();
+    return true;
+  }
+
+  if (!refs.nextButton.hidden && !refs.nextButton.disabled) {
+    refs.nextButton.click();
+    return true;
+  }
+
+  return false;
+}
+
+function shouldHandleEnterAdvance(event: KeyboardEvent): boolean {
+  if (event.key !== "Enter" || event.repeat || event.isComposing) {
+    return false;
+  }
+
+  if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+    return false;
+  }
+
+  if (isBlockingOverlayOpen()) {
+    return false;
+  }
+
+  return !isKeyboardInputTarget(event.target);
+}
+
+function isBlockingOverlayOpen(): boolean {
+  const welcomeOverlay = document.getElementById("welcome-overlay") as HTMLElement | null;
+  const dayTransitionOverlay = document.getElementById("day-transition-overlay") as HTMLElement | null;
+
+  return Boolean(
+    (settingsPanel && !settingsPanel.hidden) ||
+    (welcomeOverlay && !welcomeOverlay.hidden) ||
+    (dayTransitionOverlay && !dayTransitionOverlay.hidden)
+  );
+}
+
+function isKeyboardInputTarget(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) {
+    return false;
+  }
+
+  if (target.closest("input, textarea, select, [contenteditable='true']")) {
+    return true;
+  }
+
+  const button = target.closest("button");
+  if (!button || button === refs.nextButton) {
+    return false;
+  }
+
+  return !button.matches(".choice-button.is-pending");
+}
 
 refs.resultHomeButton.addEventListener("click", () => {
   if (state) saveGameState(state);

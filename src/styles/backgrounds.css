@@ -514,7 +514,8 @@ body {
   }
 
   .main-grid:has(.side-panel:not([hidden])) {
-    grid-template-rows: minmax(280px, 1fr) minmax(190px, auto);
+    /* 桌機矮視窗時，右側對話與選項必須一起收在 main-grid 內，選項內容再由面板捲動。 */
+    grid-template-rows: minmax(0, 1fr) minmax(0, clamp(160px, 34dvh, 300px));
   }
 
   .main-grid:has(.side-panel:not([hidden])) .dialog-box {
@@ -524,8 +525,11 @@ body {
   .side-panel {
     grid-column: 2;
     grid-row: 2;
-    max-height: 38vh;
+    min-height: 0;
+    height: 100%;
+    max-height: none;
     border-top: 0;
+    overflow: hidden;
   }
 
   .main-grid:has(.result-panel:not([hidden])) .side-panel {
@@ -535,6 +539,8 @@ body {
   }
 
   .choice-area {
+    min-height: 0;
+    height: 100%;
     max-height: 100%;
   }
 
