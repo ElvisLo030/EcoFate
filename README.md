@@ -12,6 +12,7 @@
 - **三種結局**：主線 ≥ 450 且 SP 合計 ≥ 75 → True Ending；主線 ≥ 400 → Good Ending；其他 → Bad Ending。
 - 環保積分（好感度）同步顯示為「綠葉轉愛心」像素進度條。
 - 遊戲狀態儲存於瀏覽器 `localStorage`，含 Base64 + 時間戳混淆校驗，防止一般玩家竄改。
+- 支援手機直向與桌機版遊玩：桌機版採左側場景/立繪、右側對話/選項的雙欄 AVG 介面，操作流程與手機版共用同一套遊戲邏輯。
 
 ## 技術架構
 
@@ -23,6 +24,7 @@
 | 劇本格式 | Markdown（`src/data/i18n/zh-TW/script/**/*.md`） |
 | UI 文字 | YAML（`src/data/i18n/zh-TW/ui.yaml`） |
 | 動畫 | Motion One（立繪互動）、GSAP（對話打字機效果） |
+| 視覺回歸 | Playwright（桌機版截圖 baseline 與 layout 斷言） |
 | 部署 | GitHub Pages + GitHub Actions |
 
 ## 專案結構
@@ -54,15 +56,19 @@
 │   │   ├── scriptLoader.ts            # 建置期 MD 解析器
 │   │   ├── storage.ts                 # localStorage 存讀取與校驗
 │   │   └── types.ts                   # 型別定義
-│   ├── lib/security/
-│   │   └── profanity.ts               # 暱稱不雅字眼過濾
+│   ├── lib/game/nickname.ts           # 暱稱正規化與長度限制
 │   ├── pages/
 │   │   ├── index.astro                # 主畫面
 │   │   └── game.astro                 # 遊戲頁面
 │   ├── scripts/
 │   │   ├── home.ts                    # 主畫面互動邏輯
 │   │   └── game.ts                    # 遊戲客戶端邏輯
-│   └── styles/                        # 全域像素風 CSS
+│   └── styles/                        # 全域像素風 CSS（背景/版面、文字、按鈕分檔）
+├── tests/
+│   ├── desktop-visual.spec.ts         # 桌機版 Playwright 視覺回歸測試
+│   └── desktop-visual.spec.ts-snapshots/
+│       └── *.png                      # 截圖 baseline，需納入版本控制
+├── playwright.config.ts               # Playwright 測試設定
 └── astro.config.mjs
 ```
 
@@ -98,9 +104,33 @@ cp .env.example .env.local
 pnpm run check           # Astro 型別與診斷檢查
 pnpm run verify:content  # 驗證劇本結構、選項與配分
 pnpm run verify:flow     # 驗證 Day 流程推進與結局判定
+pnpm run test:visual     # Playwright 桌機版視覺回歸測試
 pnpm run build           # 建置靜態輸出（先執行 check）
 pnpm preview             # 預覽建置成果
 ```
+
+### 視覺回歸測試
+
+桌機版介面使用 Playwright 固定 `1440x900` viewport 驗證 `/game/`：
+
+- 桌機與橫向限制遮罩不顯示。
+- `.game-window`、`.scene-panel`、`#dialog-box` 可見。
+- 場景區在左、對話區在右，符合雙欄版面。
+- `.game-window` 截圖需符合 `tests/desktop-visual.spec.ts-snapshots/` 內的 baseline。
+
+首次安裝相依套件後若尚未下載瀏覽器，先執行：
+
+```bash
+pnpm exec playwright install chromium
+```
+
+當桌機 UI 是預期變更時，更新 baseline：
+
+```bash
+pnpm run test:visual --update-snapshots
+```
+
+`test-results/` 與 `playwright-report/` 是執行產物，不需納入版本控制；`tests/desktop-visual.spec.ts-snapshots/` 是回歸比對基準，需保留。
 
 ## 修改劇本內容
 
@@ -139,6 +169,7 @@ pnpm preview             # 預覽建置成果
 pnpm run verify:content
 pnpm run verify:flow
 pnpm run check
+pnpm run test:visual
 ```
 
 詳細格式規則請參閱 `src/data/i18n/zh-TW/script/rule.md`。

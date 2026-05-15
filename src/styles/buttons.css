@@ -395,6 +395,21 @@ button:disabled {
   box-shadow: var(--shadow-button-small-hover);
 }
 
+@media (min-width: 861px) {
+  .pixel-button {
+    min-width: 160px;
+  }
+
+  .choice-button {
+    min-height: 58px;
+    padding: 12px 14px;
+  }
+
+  .text-input {
+    min-height: 48px;
+  }
+}
+
 @media (max-width: 860px) {
   .status-strip,
   .name-row,

@@ -9,16 +9,17 @@
     "preview": "astro preview",
     "check": "astro check",
     "verify:content": "node scripts/verify-content.mjs",
-    "verify:flow": "node scripts/verify-flow.mjs"
+    "verify:flow": "node scripts/verify-flow.mjs",
+    "test:visual": "playwright test"
   },
   "dependencies": {
     "@motionone/dom": "latest",
     "astro": "latest",
-    "bad-words": "latest",
     "gsap": "latest"
   },
   "devDependencies": {
     "@astrojs/check": "latest",
+    "@playwright/test": "^1.60.0",
     "typescript": "latest"
   },
   "packageManager": "pnpm@10.0.0"

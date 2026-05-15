@@ -451,3 +451,27 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+@media (min-width: 861px) {
+  .brand {
+    font-size: 1.28rem;
+  }
+
+  .dialog-text {
+    font-size: 1.08rem;
+    line-height: 1.78;
+  }
+
+  .scene-title {
+    font-size: 1.42rem;
+  }
+
+  .progress-top,
+  .stat-value {
+    font-size: 0.95rem;
+  }
+
+  .report-header p {
+    font-size: 0.96rem;
+  }
+}

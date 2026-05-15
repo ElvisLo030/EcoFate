@@ -1,9 +1,9 @@
 import { animate } from "@motionone/dom";
 import gsap from "gsap";
 import { advanceStage, answerSpStage, answerStage, createInitialState, evaluateCondition, evaluateEnding, getCurrentDay, getCurrentStage, replacePlaceholders } from "@/lib/game/engine";
+import { MAX_NICKNAME_LENGTH, normalizeNickname } from "@/lib/game/nickname";
 import { clearGameState, loadGameState, resetGameState, saveGameState } from "@/lib/game/storage";
 import type { AnswerResult, BranchCondition, DayContent, DayId, DayIntroContent, DayOutroBranchContent, EndingResultContent, GameContent, GameState, NameDayIntroContent, PrologueScene, SpRouteContent, SpRouteId, StageContent, StorySceneContent } from "@/lib/game/types";
-import { sanitizeNickname, MAX_NICKNAME_LENGTH } from "@/lib/security/profanity";
 
 const BASE_URL = import.meta.env.BASE_URL || "/";
 const content = readContent();
@@ -226,13 +226,12 @@ refs.nextButton.addEventListener("click", () => {
     const nameInput = document.getElementById("player-name-input") as HTMLInputElement | null;
     const nameError = document.getElementById("name-error") as HTMLElement | null;
     if (!nameInput) return;
-    const result = sanitizeNickname(nameInput.value);
+    const result = normalizeNickname(nameInput.value);
     if (!result.ok) {
       if (nameError) {
         const errorMap: Record<string, string> = {
           empty:   content.ui.nameErrorEmpty,
           tooLong: fmt(content.ui.nameErrorTooLong, { maxLength: MAX_NICKNAME_LENGTH }),
-          profane: content.ui.nameErrorProfane,
         };
         nameError.textContent = result.errorCode ? (errorMap[result.errorCode] ?? "") : "";
       }
@@ -633,13 +632,12 @@ function handleDayIntroNext(): void {
     const nameError = document.getElementById("name-error") as HTMLElement | null;
     if (!nameInput) return;
 
-    const result = sanitizeNickname(nameInput.value);
+    const result = normalizeNickname(nameInput.value);
     if (!result.ok) {
       if (nameError) {
         const errorMap: Record<string, string> = {
           empty: content.ui.nameErrorEmpty,
-          tooLong: fmt(content.ui.nameErrorTooLong, { maxLength: MAX_NICKNAME_LENGTH }),
-          profane: content.ui.nameErrorProfane
+          tooLong: fmt(content.ui.nameErrorTooLong, { maxLength: MAX_NICKNAME_LENGTH })
         };
         nameError.textContent = result.errorCode ? (errorMap[result.errorCode] ?? "") : "";
       }

@@ -36,7 +36,6 @@ namePlaceholder: 文本文本文本
 # 錯誤訊息
 nameErrorEmpty: 請輸入玩家名稱。
 nameErrorTooLong: "玩家名稱最多 {maxLength} 個字。"
-nameErrorProfane: 玩家名稱含有不適合的文字。
 
 # 進度條
 progressBarLabel: 環保積分進度

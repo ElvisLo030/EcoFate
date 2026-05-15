@@ -90,14 +90,8 @@
   padding: 32px;
 }
 
-@media (orientation: landscape) {
+@media (orientation: landscape) and (hover: none) and (pointer: coarse) {
   .landscape-overlay {
-    display: flex;
-  }
-}
-
-@media (orientation: portrait) and (min-width: 640px) {
-  .desktop-overlay {
     display: flex;
   }
 }
@@ -453,6 +447,101 @@ body {
 .footer-bar[hidden],
 .status-strip[hidden] {
   display: none;
+}
+
+@media (min-width: 861px) {
+  .app-shell {
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .game-window {
+    width: min(100%, 1180px);
+    max-width: none;
+    min-height: min(760px, calc(100dvh - 48px));
+    max-height: calc(100dvh - 48px);
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+  }
+
+  .status-strip {
+    grid-template-columns: minmax(180px, 220px) minmax(300px, 1fr) minmax(180px, 240px);
+    padding: 14px 16px;
+  }
+
+  .main-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(360px, 420px);
+    grid-template-rows: minmax(0, 1fr) auto;
+    align-items: stretch;
+    min-height: 0;
+  }
+
+  .scene-panel {
+    grid-column: 1;
+    grid-row: 1 / 3;
+    width: 100%;
+    border-right: 4px solid var(--line);
+    border-bottom: 0;
+  }
+
+  .scene-visual {
+    width: 100%;
+    height: 100%;
+    min-height: clamp(300px, calc(100dvh - 230px), 520px);
+    padding: 18px 18px 0;
+  }
+
+  .character-portrait {
+    width: min(42vw, 360px);
+    height: clamp(280px, calc(100dvh - 260px), 520px);
+  }
+
+  .dialog-box {
+    grid-column: 2;
+    grid-row: 1;
+    width: 100%;
+    min-height: 0;
+    border-bottom: 4px solid var(--line);
+  }
+
+  .main-grid:not(:has(.side-panel:not([hidden]))) .dialog-box {
+    grid-row: 1 / 3;
+    border-bottom: 0;
+  }
+
+  .main-grid:has(.side-panel:not([hidden])) {
+    grid-template-rows: minmax(280px, 1fr) minmax(190px, auto);
+  }
+
+  .main-grid:has(.side-panel:not([hidden])) .dialog-box {
+    flex: none;
+  }
+
+  .side-panel {
+    grid-column: 2;
+    grid-row: 2;
+    max-height: 38vh;
+    border-top: 0;
+  }
+
+  .main-grid:has(.result-panel:not([hidden])) .side-panel {
+    grid-row: 1 / 3;
+    max-height: none;
+    border-top: 0;
+  }
+
+  .choice-area {
+    max-height: 100%;
+  }
+
+  .main-grid:has(.result-panel:not([hidden])) .result-panel {
+    min-height: 100%;
+    border-top: 0;
+  }
 }
 
 .footer-bar {
