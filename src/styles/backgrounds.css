@@ -467,6 +467,10 @@ body {
     grid-template-rows: auto auto minmax(0, 1fr) auto;
   }
 
+  .game-window:has(.result-panel:not([hidden])) {
+    grid-template-rows: auto minmax(0, 1fr) auto;
+  }
+
   .status-strip {
     grid-template-columns: minmax(180px, 220px) minmax(300px, 1fr) minmax(180px, 240px);
     padding: 14px 16px;

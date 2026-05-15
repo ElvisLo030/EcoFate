@@ -44,6 +44,50 @@ async function installD1FirstStageSave(page: Page): Promise<void> {
   });
 }
 
+async function installCompletedResultSave(page: Page): Promise<void> {
+  await page.addInitScript(() => {
+    const now = Date.now();
+    const state = {
+      playerName: "小羅羅",
+      currentDayIndex: 4,
+      currentStageIndex: 4,
+      dayScores: { day1: 100, day2: 100, day3: 100, day4: 100, day5: 100 },
+      spScores: { sp1: 50, sp2: 50 },
+      totalScore: 500,
+      answeredStageIds: [],
+      selectedAnswers: {},
+      pendingSpRouteId: null,
+      currentSpRouteId: null,
+      currentSpStageIndex: 0,
+      completedIntros: ["day1", "day2", "day3", "day4", "day5"],
+      completedOutros: ["day1", "day2", "day3", "day4"],
+      completedSpRouteIntros: ["sp1", "sp2"],
+      completedSpRoutes: ["sp1", "sp2"],
+      toBeContinued: false,
+      completed: true,
+      completedEnding: true,
+      completedEpilogue: true,
+      startedAt: now - 22 * 60 * 1000 - 54 * 1000,
+      completedAt: now,
+      savedAt: now
+    };
+    const spScore = Object.values(state.spScores).join(",");
+    const routeState = [
+      state.pendingSpRouteId ?? "",
+      state.currentSpRouteId ?? "",
+      state.currentSpStageIndex ?? 0,
+      state.toBeContinued ? "tbc" : "",
+      state.completedEnding ? "ending" : "",
+      state.completedEpilogue ? "epilogue" : "",
+      state.startedAt ?? "",
+      state.completedAt ?? ""
+    ].join(",");
+    const source = `${state.playerName}|${state.totalScore}|${spScore}|${state.answeredStageIds.join(",")}|${routeState}|${state.savedAt}`;
+    const checksum = btoa(encodeURIComponent(source)).slice(0, 24);
+    localStorage.setItem("hackathon-esg-avg-save-v2", btoa(encodeURIComponent(JSON.stringify({ state, checksum }))));
+  });
+}
+
 async function revealChoices(page: Page): Promise<void> {
   for (let i = 0; i < 10; i += 1) {
     await page.locator("#dialog-text.is-finished").waitFor({ timeout: 10000 });
@@ -170,5 +214,28 @@ test.describe("桌機版遊戲介面", () => {
     await expect(page.locator(".choice-button").first()).toBeDisabled();
     await expect(page.locator("#next-stage-button")).toBeDisabled();
     await expect(page.locator("#dialog-text")).not.toHaveText("你今天有帶水壺嗎？");
+  });
+
+  test("桌機成績單不保留底部空白列", async ({ page }) => {
+    await installCompletedResultSave(page);
+    await page.goto("/game/");
+    await expect(page.locator("#result-panel")).toBeVisible();
+
+    const layout = await page.evaluate(() => {
+      const game = document.querySelector(".game-window")!.getBoundingClientRect();
+      const main = document.querySelector(".main-grid")!.getBoundingClientRect();
+      const result = document.querySelector("#result-panel")!.getBoundingClientRect();
+
+      return {
+        gameBottom: game.bottom,
+        mainBottom: main.bottom,
+        resultBottom: result.bottom,
+        rows: getComputedStyle(document.querySelector(".game-window")!).gridTemplateRows
+      };
+    });
+
+    expect(layout.rows.split(" ")).toHaveLength(3);
+    expect(layout.mainBottom).toBeGreaterThan(layout.gameBottom - 8);
+    expect(Math.abs(layout.resultBottom - layout.mainBottom)).toBeLessThanOrEqual(1);
   });
 });
