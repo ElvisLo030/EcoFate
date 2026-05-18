@@ -354,14 +354,36 @@ body {
   --scene-bg: linear-gradient(180deg, #f3ddb1 0%, #ffeef6 50%, #c8ebd1 100%);
 }
 
+/* 包裝容器：建立 position 上下文供遮罩定位 */
+.portrait-container {
+  position: relative;
+  align-self: end;
+  justify-self: center;
+}
+
 .character-portrait {
   position: relative;
   z-index: 1;
+  display: block;
   width: 160px;
   height: 180px;
   object-fit: contain;
   image-rendering: pixelated;
   filter: drop-shadow(6px 6px 0 rgba(52, 38, 57, 0.22));
+  /* 防止拖曳與右鍵直接操作圖片元素 */
+  pointer-events: none;
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
+/* 透明遮罩：覆蓋 <img>，攔截所有滑鼠事件 */
+.portrait-guard {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  cursor: default;
+  -webkit-user-drag: none;
+  user-select: none;
 }
 
 .side-panel {

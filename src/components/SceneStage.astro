@@ -4,13 +4,17 @@ const BASE = import.meta.env.BASE_URL;
 
 <section class="scene-panel">
   <div class="scene-visual" id="scene-visual" data-bg="club">
-    <img
-      class="character-portrait"
-      id="character-portrait"
-      src={`${BASE}assets/characters/system.svg`}
-      alt="系統立繪"
-      width="330"
-      height="390"
-    />
+    <div class="portrait-container">
+      <img
+        class="character-portrait"
+        id="character-portrait"
+        src={`${BASE}assets/characters/system.svg`}
+        alt="系統立繪"
+        width="330"
+        height="390"
+        draggable="false"
+      />
+      <div class="portrait-guard" aria-hidden="true"></div>
+    </div>
   </div>
 </section>
