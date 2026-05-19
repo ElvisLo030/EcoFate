@@ -762,6 +762,12 @@ body {
   gap: 0;
 }
 
+/* 包裝容器：供首頁角色遮罩定位 */
+.home-char-container {
+  position: relative;
+  flex-shrink: 0;
+}
+
 .home-character-img {
   width: 72px;
   height: 130px;
@@ -771,6 +777,20 @@ body {
   image-rendering: pixelated;
   filter: drop-shadow(3px 0 0 rgba(52, 38, 57, 0.2));
   margin: 0 -8px;
+  /* 防止拖曳與右鍵另存 */
+  pointer-events: none;
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
+/* 透明遮罩：覆蓋首頁角色圖，攔截滑鼠事件 */
+.home-char-guard {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  cursor: default;
+  -webkit-user-drag: none;
+  user-select: none;
 }
 
 .home-menu {

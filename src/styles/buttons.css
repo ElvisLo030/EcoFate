@@ -370,6 +370,10 @@ button:disabled {
   /* 以底部中心為軸微微逆時針傾斜，產生從右下角探出的感覺 */
   transform: rotate(-15deg);
   transform-origin: bottom center;
+  /* 防止拖曳與右鍵另存（button 本身接收事件，不顯示圖片選單） */
+  pointer-events: none;
+  -webkit-user-drag: none;
+  user-select: none;
 }
 
 .knowledge-day-btn--locked .knowledge-day-btn__thumb {

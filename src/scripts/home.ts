@@ -45,11 +45,22 @@ function renderCharacters(state: GameState | null): void {
   for (const key of visibleKeys) {
     const char = content.characters[key];
     if (!char) continue;
+
+    const wrapper = document.createElement("div");
+    wrapper.className = "home-char-container";
+
     const img = document.createElement("img");
     img.className = "home-character-img";
     img.src = `${BASE_URL}${char.portrait}`;
     img.alt = char.displayName;
-    container.append(img);
+    img.draggable = false;
+
+    const guard = document.createElement("div");
+    guard.className = "home-char-guard";
+    guard.setAttribute("aria-hidden", "true");
+
+    wrapper.append(img, guard);
+    container.append(wrapper);
   }
 }
 
@@ -222,6 +233,7 @@ function buildKnowledgeDayBtn(
     thumb.className = "knowledge-day-btn__thumb";
     thumb.src = `${BASE_URL}${char.portrait}`;
     thumb.alt = char.displayName;
+    thumb.draggable = false;
     btn.append(thumb);
   }
 
